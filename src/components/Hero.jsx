@@ -1,32 +1,102 @@
-
 import React from 'react'
 
-export default function Hero(){
+export default function Hero() {
+
+  // MAIN LOGO (easy to replace later)
+  const mainLogo = "/assets/H-Safe-Logo.png";
+
+  // Add modern sleek fonts
+  React.useEffect(() => {
+    const link = document.createElement('link');
+    link.href = 'https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap';
+    link.rel = 'stylesheet';
+    document.head.appendChild(link);
+  }, []);
+
   return (
-    <section className="hero-landing py-20">
-      <div className="container mx-auto px-6 grid lg:grid-cols-12 gap-8 items-center">
-        <div className="lg:col-span-7">
-          <h1 className="text-5xl font-extrabold mb-4">Coming Soon</h1>
-          <p className="muted mb-6">We're building a comprehensive, simulation-based firewall system that helps students & admins learn network security through hands-on simulations.</p>
-          <div className="flex gap-4">
-            <button className="px-6 py-3 rounded-md bg-primary text-white">Get Early Access</button>
-            <a href="/about" className="px-6 py-3 rounded-md border">About</a>
-          </div>
-          <div className="mt-6 muted text-sm flex gap-6">
-            <div><i className="fas fa-check-circle text-green-500"></i> Interactive simulator</div>
-            <div><i className="fas fa-check-circle text-green-500"></i> PCAP analysis</div>
-          </div>
-        </div>
-        <div className="lg:col-span-5">
-          <div className="card p-4">
-            <div className="h-44 rounded-lg bg-gradient-to-br from-primary/10 to-transparent flex items-center justify-center text-primary font-bold">H‑SAFE Preview</div>
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="p-3 border rounded-md text-sm muted">Rule Editor</div>
-              <div className="p-3 border rounded-md text-sm muted">Topology</div>
-              <div className="p-3 border rounded-md text-sm muted">Analytics</div>
-              <div className="p-3 border rounded-md text-sm muted">Reports</div>
+    <section className="hero-landing py-32 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-950 min-h-screen flex items-center relative overflow-hidden">
+      {/* Background gradient overlay */}
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-500/20 to-purple-500/20 pointer-events-none"></div>
+      
+      <div className="container mx-auto px-6 w-full relative z-10">
+        <div className="grid lg:grid-cols-2 gap-12 items-center font-inter h-full">
+
+          {/* LEFT SIDE — MAIN LOGO */}
+          <div className="flex justify-center lg:justify-end order-1 lg:order-1">
+            <div className="relative w-full max-w-lg animate-slide-in-left">
+              <img 
+                src={mainLogo} 
+                alt="H-Safe Logo" 
+                className="w-full h-auto drop-shadow-2xl object-contain hover:scale-110 transition-transform duration-500"
+              />
             </div>
           </div>
+
+          {/* RIGHT TEXT CONTENT */}
+          <div className="space-y-8 order-2 lg:order-2 animate-slide-in-right">
+            
+            <h1 className="text-6xl lg:text-8xl font-extrabold leading-tight tracking-tight text-slate-500 animate-fade-in-down uppercase" style={{ 
+              fontFamily: 'Sora, sans-serif',
+              letterSpacing: '0.02em',
+              fontWeight: 700,
+              animation: 'shimmer 4s ease-in-out infinite'
+            }}>
+              <style>{`
+                @keyframes shimmer {
+                  0%, 100% { 
+                    background: linear-gradient(90deg, #64748b, #64748b);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                  }
+                  50% { 
+                    background: linear-gradient(90deg, #64748b, #60a5fa);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                  }
+                }
+              `}</style>
+              <span className="bg-gradient-to-r from-slate-500 to-blue-400 text-transparent bg-clip-text">
+                Coming Soon
+              </span>
+            </h1>
+
+            <p className="text-xl text-slate-500 font-medium leading-relaxed max-w-2xl animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+              We're building a comprehensive, simulation-based firewall system designed 
+              to help students and admins learn network security with hands-on, 
+              real-time simulations and interactive tools.
+            </p>
+
+            <div className="flex gap-4 pt-6 animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <button 
+                onClick={() => window.location.href = "/early-access"} 
+                className="px-8 py-4 rounded-xl bg-blue-600 hover:bg-blue-500 transition-all text-white shadow-lg font-semibold tracking-wide hover:shadow-2xl hover:scale-105 transform duration-300"
+              >
+                Get Early Access
+              </button>
+
+              <a
+                href="/about"
+                className="px-8 py-4 rounded-xl border-2 border-blue-500 bg-blue-600/20 hover:bg-blue-600/40 text-white hover:text-white transition-all font-semibold hover:scale-105 transform duration-300 hover:border-blue-400"
+              >
+                About
+              </a>
+            </div>
+
+            <div className="mt-8 text-sm font-semibold text-slate-500 flex flex-col gap-4 animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
+              <div className="flex items-center gap-3 hover:text-blue-400 transition-all hover:translate-x-2 duration-300">
+                <i className="fas fa-check-circle text-green-500 text-lg"></i> 
+                <span>Interactive Simulator</span>
+              </div>
+              <div className="flex items-center gap-3 hover:text-blue-400 transition-all hover:translate-x-2 duration-300">
+                <i className="fas fa-check-circle text-green-500 text-lg"></i> 
+                <span>PCAP Analysis</span>
+              </div>
+            </div>
+
+          </div>
+
         </div>
       </div>
     </section>
