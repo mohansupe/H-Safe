@@ -3,8 +3,8 @@ import React, { useState } from 'react'
 const members = [
   {
     name: 'Mohan Supe',
-    role: 'Front-end Dev',
-    bio: 'All the frontend needed for the project.',
+    role: 'Front-end Developer',
+    bio: 'Developing the frontend of the project.',
     img: '/assets/mohan.jpg',
     details: {
       fullName: 'MOHAN ASHOK SUPE',
@@ -15,8 +15,8 @@ const members = [
       email: 'mohan.supe@adypu.edu.in'
     }
   },
-  { name: 'Hrishikesh Badgujar', role: 'Front-end Dev', bio: 'Login and UI/UX.', img: '/assets/hrishi.jpg' },
-  { name: 'Varad Khopkar', role: 'Backend', bio: 'Implementing & developing logic.', img: '/assets/varad.jpg' },
+  { name: 'Hrishikesh Badgujar', role: 'Front-end Developer', bio: 'Developing the frontend of the project.', img: '/assets/hrishi.jpg' },
+  { name: 'Varad Khopkar', role: 'Backend Developer', bio: 'Implementing & developing logic.', img: '/assets/varad.jpg' },
   { name: 'Khushi Gupta', role: 'Research', bio: 'Documenting & Research.', img: '/assets/khushi.jpg' },
 ]
 
