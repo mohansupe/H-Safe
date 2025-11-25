@@ -47,6 +47,28 @@ export default function Team() {
         ))}
       </div>
 
+      {/* Project Guide Section */}
+      <div className="mt-16 text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <h3 className="text-slate-500 text-sm uppercase tracking-widest font-semibold mb-6">Project Under Guidance of</h3>
+        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8 max-w-2xl mx-auto hover:border-blue-500/50 transition-all group">
+          <div className="flex flex-col md:flex-row items-center gap-8">
+            <div className="relative">
+              <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+              <img
+                src="/assets/santoshsir.png"
+                alt="Dr. Santosh Borde"
+                className="w-32 h-32 rounded-full object-cover border-4 border-slate-700 group-hover:border-blue-500 transition-colors relative z-10"
+              />
+            </div>
+            <div className="text-center md:text-left">
+              <h4 className="text-2xl font-bold text-white mb-2">Dr. Santosh Borde Sir</h4>
+              <p className="text-blue-400 font-medium mb-1">Director - Students Progression and Corporate Relations</p>
+              <p className="text-slate-400 text-sm">@Ajeenkya DY Patil Group of Institutes</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Modal */}
       {selectedMember && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedMember(null)}>
