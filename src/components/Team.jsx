@@ -1,23 +1,107 @@
+import React, { useState } from 'react'
 
-import React from 'react'
 const members = [
-  { name: 'Mohan Supe', role: 'Front-end Dev', bio: 'All the frontend needed for the project.', img: '/assets/mohan.jpg' },
+  {
+    name: 'Mohan Supe',
+    role: 'Front-end Dev',
+    bio: 'All the frontend needed for the project.',
+    img: '/assets/mohan.jpg',
+    details: {
+      fullName: 'MOHAN ASHOK SUPE',
+      course: 'Final Year Btech Computer Science Engineering',
+      institute: 'Ajeenkya DY Patil University',
+      github: 'https://github.com/mohansupe',
+      phone: '+91 7030085985',
+      email: 'mohan.supe@adypu.edu.in'
+    }
+  },
   { name: 'Hrishikesh Badgujar', role: 'Front-end Dev', bio: 'Login and UI/UX.', img: '/assets/hrishi.jpg' },
   { name: 'Varad Khopkar', role: 'Backend', bio: 'Implementing & developing logic.', img: '/assets/varad.jpg' },
   { name: 'Khushi Gupta', role: 'Research', bio: 'Documenting & Research.', img: '/assets/khushi.jpg' },
 ]
 
-export default function Team(){
+export default function Team() {
+  const [selectedMember, setSelectedMember] = useState(null);
+
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-      {members.map((m,i)=> (
-        <div key={i} className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all">
-          <img src={m.img} alt={m.name} className="w-28 h-28 rounded-full mx-auto mb-4 object-cover" />
-          <h3 className="font-semibold text-white">{m.name}</h3>
-          <div className="text-slate-400 text-sm">{m.role}</div>
-          <p className="text-slate-500 text-xs mt-2">{m.bio}</p>
+    <>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {members.map((m, i) => (
+          <div
+            key={i}
+            onClick={() => setSelectedMember(m)}
+            className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer group"
+          >
+            <div className="relative inline-block">
+              <img src={m.img} alt={m.name} className="w-28 h-28 rounded-full mx-auto mb-4 object-cover group-hover:scale-105 transition-transform duration-300" />
+              {m.details && (
+                <div className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                  Info
+                </div>
+              )}
+            </div>
+            <h3 className="font-semibold text-white">{m.name}</h3>
+            <div className="text-slate-400 text-sm">{m.role}</div>
+            <p className="text-slate-500 text-xs mt-2">{m.bio}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Modal */}
+      {selectedMember && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedMember(null)}>
+          <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-md w-full relative shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+            <button
+              onClick={() => setSelectedMember(null)}
+              className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6">
+              <img src={selectedMember.img} alt={selectedMember.name} className="w-32 h-32 rounded-full mx-auto mb-4 object-cover border-4 border-blue-500/20" />
+              <h2 className="text-2xl font-bold text-white">{selectedMember.details?.fullName || selectedMember.name}</h2>
+              <p className="text-blue-400 font-medium">{selectedMember.role}</p>
+            </div>
+
+            {selectedMember.details ? (
+              <div className="space-y-4 text-slate-300 text-sm">
+                <div className="bg-slate-800/50 p-4 rounded-xl space-y-3">
+                  <div>
+                    <span className="text-slate-500 block text-xs uppercase tracking-wider font-semibold">Course</span>
+                    {selectedMember.details.course}
+                  </div>
+                  <div>
+                    <span className="text-slate-500 block text-xs uppercase tracking-wider font-semibold">Institute</span>
+                    {selectedMember.details.institute}
+                  </div>
+                </div>
+
+                <div className="space-y-2 pt-2">
+                  <a href={selectedMember.details.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors group">
+                    <i className="fab fa-github text-xl text-slate-400 group-hover:text-white"></i>
+                    <span className="text-blue-400 group-hover:underline">GitHub Profile</span>
+                  </a>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
+                    <i className="fas fa-phone text-xl text-slate-400"></i>
+                    <span>{selectedMember.details.phone}</span>
+                  </div>
+                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
+                    <i className="fas fa-envelope text-xl text-slate-400"></i>
+                    <a href={`mailto:${selectedMember.details.email}`} className="text-blue-400 hover:underline">{selectedMember.details.email}</a>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <p className="text-center text-slate-400">
+                {selectedMember.bio}
+              </p>
+            )}
+          </div>
         </div>
-      ))}
-    </div>
+      )}
+    </>
   )
 }
