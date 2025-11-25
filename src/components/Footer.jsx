@@ -42,9 +42,13 @@ export default function Footer() {
 
         <div>
           <h4 className="font-semibold text-white">Send us a message</h4>
-          <form id="footer-contact-form" className="flex flex-col gap-3">
+          <form action="https://formsubmit.co/mohansupe2004@gmail.com" method="POST" className="flex flex-col gap-3">
+            <input type="hidden" name="_subject" value="New Message from H-SAFE Website" />
+            <input type="hidden" name="_captcha" value="false" />
+            <input type="hidden" name="_template" value="table" />
+
             <input name="name" placeholder="Name" className="px-3 py-2 border border-slate-700 rounded-md bg-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none" required />
-            <input name="email" placeholder="Email" className="px-3 py-2 border border-slate-700 rounded-md bg-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none" required />
+            <input type="email" name="email" placeholder="Email" className="px-3 py-2 border border-slate-700 rounded-md bg-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none" required />
             <textarea name="message" placeholder="Message" rows="3" className="px-3 py-2 border border-slate-700 rounded-md bg-slate-800 text-white placeholder-slate-500 focus:border-blue-500 focus:outline-none" required></textarea>
             <button type="submit" className="px-4 py-2 rounded-md bg-blue-600 text-white hover:bg-blue-500 transition-colors">Send</button>
           </form>
