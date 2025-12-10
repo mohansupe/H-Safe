@@ -2,18 +2,43 @@ import React, { useEffect, useState } from 'react'
 import { useUser, RedirectToSignIn } from '@clerk/clerk-react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
+import { isAdmin, SUPER_ADMIN_EMAIL } from '../lib/checkAdmin'
+import AdminManageAdmins from '../components/admin/AdminManageAdmins'
+import AdminAccessRequests from '../components/admin/AdminAccessRequests'
+import AdminFeedback from '../components/admin/AdminFeedback'
 
 export default function Admin() {
   const { isSignedIn, isLoaded, user } = useUser()
   const [requests, setRequests] = useState([])
   const [feedbacks, setFeedbacks] = useState([])
+  const [admins, setAdmins] = useState([])
   const [loading, setLoading] = useState(true)
+  const [newAdminEmail, setNewAdminEmail] = useState('')
+  const [isSuperAdmin, setIsSuperAdmin] = useState(false)
+  const [isAuthorized, setIsAuthorized] = useState(false)
 
   useEffect(() => {
-    if (isSignedIn && user?.primaryEmailAddress?.emailAddress === 'mohansupe2004@gmail.com') {
-      fetchData()
+    async function checkPermissions() {
+      if (!isLoaded || !isSignedIn || !user) return
+
+      const email = user.primaryEmailAddress?.emailAddress
+      const authorized = await isAdmin(email)
+
+      if (authorized) {
+        setIsAuthorized(true)
+        setIsSuperAdmin(email === SUPER_ADMIN_EMAIL)
+        fetchData()
+        if (email === SUPER_ADMIN_EMAIL) {
+          fetchAdmins()
+        }
+      } else {
+        setIsAuthorized(false)
+      }
+      setLoading(false)
     }
-  }, [isSignedIn, user])
+
+    checkPermissions()
+  }, [isLoaded, isSignedIn, user])
 
   async function fetchData() {
     try {
@@ -27,8 +52,19 @@ export default function Admin() {
 
     } catch (error) {
       console.error('Error fetching data:', error)
-    } finally {
-      setLoading(false)
+    }
+  }
+
+  async function fetchAdmins() {
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .select('*')
+        .order('created_at', { ascending: false })
+
+      if (data) setAdmins(data)
+    } catch (error) {
+      console.error('Error fetching admins:', error)
     }
   }
 
@@ -47,13 +83,52 @@ export default function Admin() {
     }
   }
 
+  async function addAdmin(e) {
+    e.preventDefault()
+    if (!newAdminEmail) return
+
+    try {
+      const { data, error } = await supabase
+        .from('admin_users')
+        .insert([{ email: newAdminEmail }])
+        .select()
+
+      if (error) throw error
+
+      if (data) {
+        setAdmins([data[0], ...admins])
+        setNewAdminEmail('')
+      }
+    } catch (error) {
+      console.error('Error adding admin:', error)
+      alert('Failed to add admin. Make sure the email is unique.')
+    }
+  }
+
+  async function removeAdmin(id) {
+    if (!window.confirm('Are you sure you want to remove this admin?')) return
+
+    try {
+      const { error } = await supabase
+        .from('admin_users')
+        .delete()
+        .eq('id', id)
+
+      if (!error) {
+        setAdmins(admins.filter(a => a.id !== id))
+      }
+    } catch (error) {
+      console.error('Error removing admin:', error)
+    }
+  }
+
   if (!isLoaded) return <div className="min-h-screen bg-slate-900 text-white p-8">Loading...</div>
 
   if (!isSignedIn) {
     return <RedirectToSignIn />
   }
 
-  if (user?.primaryEmailAddress?.emailAddress !== 'mohansupe2004@gmail.com') {
+  if (!loading && !isAuthorized) {
     return <Navigate to="/unauthorized" />
   }
 
@@ -61,101 +136,30 @@ export default function Admin() {
     <section className="min-h-screen bg-slate-900 text-white pt-32 px-6 pb-12">
       <div className="container mx-auto space-y-12">
 
+        {/* Super Admin Section: Manage Admins */}
+        {/* Super Admin Section: Manage Admins */}
+        {isSuperAdmin && (
+          <AdminManageAdmins
+            admins={admins}
+            addAdmin={addAdmin}
+            removeAdmin={removeAdmin}
+            newAdminEmail={newAdminEmail}
+            setNewAdminEmail={setNewAdminEmail}
+          />
+        )}
+
         {/* Early Access Requests */}
-        <div>
-          <h1 className="text-3xl font-bold mb-8">Early Access Requests</h1>
-          <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
-            <table className="w-full text-left">
-              <thead className="bg-slate-900/50 text-slate-400">
-                <tr>
-                  <th className="p-4">Email</th>
-                  <th className="p-4">Date</th>
-                  <th className="p-4">Status</th>
-                  <th className="p-4">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {requests.map(req => (
-                  <tr key={req.id} className="hover:bg-slate-700/50">
-                    <td className="p-4">{req.email}</td>
-                    <td className="p-4">{new Date(req.created_at).toLocaleDateString()}</td>
-                    <td className="p-4">
-                      <span className={`px-2 py-1 rounded text-xs font-bold uppercase ${req.status === 'approved' ? 'bg-green-500/20 text-green-400' :
-                        req.status === 'rejected' ? 'bg-red-500/20 text-red-400' :
-                          'bg-yellow-500/20 text-yellow-400'
-                        }`}>
-                        {req.status}
-                      </span>
-                    </td>
-                    <td className="p-4 flex gap-2">
-                      {req.status === 'pending' && (
-                        <>
-                          <button
-                            onClick={() => updateStatus(req.id, 'approved')}
-                            className="px-3 py-1 bg-green-600 hover:bg-green-500 rounded text-sm"
-                          >
-                            Approve
-                          </button>
-                          <button
-                            onClick={() => updateStatus(req.id, 'rejected')}
-                            className="px-3 py-1 bg-red-600 hover:bg-red-500 rounded text-sm"
-                          >
-                            Reject
-                          </button>
-                        </>
-                      )}
-                      {req.status !== 'pending' && (
-                        <button
-                          onClick={() => updateStatus(req.id, 'pending')}
-                          className="px-3 py-1 bg-slate-600 hover:bg-slate-500 rounded text-sm"
-                        >
-                          Reset
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-                {requests.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan="4" className="p-8 text-center text-slate-500">No requests found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminAccessRequests
+          requests={requests}
+          updateStatus={updateStatus}
+          loading={loading}
+        />
 
         {/* Feedback Section */}
-        <div>
-          <h2 className="text-3xl font-bold mb-8">User Feedback</h2>
-          <div className="bg-slate-800 rounded-xl overflow-hidden border border-slate-700">
-            <table className="w-full text-left">
-              <thead className="bg-slate-900/50 text-slate-400">
-                <tr>
-                  <th className="p-4">Name</th>
-                  <th className="p-4">Email</th>
-                  <th className="p-4">Message</th>
-                  <th className="p-4">Date</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-700">
-                {feedbacks.map(fb => (
-                  <tr key={fb.id} className="hover:bg-slate-700/50">
-                    <td className="p-4 font-medium">{fb.name}</td>
-                    <td className="p-4 text-slate-400">{fb.email}</td>
-                    <td className="p-4 max-w-md truncate" title={fb.message}>{fb.message}</td>
-                    <td className="p-4 text-slate-500 text-sm">{fb.created_at ? new Date(fb.created_at).toLocaleDateString() : '-'}</td>
-                  </tr>
-                ))}
-                {feedbacks.length === 0 && !loading && (
-                  <tr>
-                    <td colSpan="4" className="p-8 text-center text-slate-500">No feedback found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <AdminFeedback
+          feedbacks={feedbacks}
+          loading={loading}
+        />
 
       </div>
     </section>

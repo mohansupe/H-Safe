@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js')
+import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -11,11 +11,11 @@ function isAdmin(req) {
   return ADMIN_API_KEY && key === ADMIN_API_KEY
 }
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
   try {
     if (!isAdmin(req)) return res.status(403).json({ error: 'Forbidden' })
-    const body = req.body || (await new Promise(r=>{let d=''; req.on('data',c=>d+=c); req.on('end',()=>r(JSON.parse(d)))}))
+    const body = req.body || (await new Promise(r => { let d = ''; req.on('data', c => d += c); req.on('end', () => r(JSON.parse(d))) }))
     const { id } = body
     if (!id) return res.status(400).json({ error: 'Missing id' })
 

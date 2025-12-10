@@ -1,4 +1,4 @@
-const { createClient } = require('@supabase/supabase-js')
+import { createClient } from '@supabase/supabase-js'
 
 const SUPABASE_URL = process.env.SUPABASE_URL
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -28,11 +28,11 @@ async function sendEmailNotification(subject, html) {
   }
 }
 
-module.exports = async (req, res) => {
+export default async (req, res) => {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' })
 
   try {
-    const body = req.body || (await new Promise(r=>{let d=''; req.on('data',c=>d+=c); req.on('end',()=>r(JSON.parse(d)))}))
+    const body = req.body || (await new Promise(r => { let d = ''; req.on('data', c => d += c); req.on('end', () => r(JSON.parse(d))) }))
     const { name, email, message } = body
     if (!name || !email || !message) return res.status(400).json({ error: 'Missing fields' })
 
@@ -46,7 +46,7 @@ module.exports = async (req, res) => {
     }
 
     const html = `<p>New contact message:</p><p><strong>${name}</strong> &lt;${email}&gt;</p><p>${message}</p>`
-    sendEmailNotification('New H-SAFE Contact Message', html).catch(()=>{})
+    sendEmailNotification('New H-SAFE Contact Message', html).catch(() => { })
 
     res.status(200).json({ ok: true, inserted: data })
   } catch (e) {

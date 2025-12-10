@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import ModuleCard from './modules/ModuleCard'
+import ModuleModal from './modules/ModuleModal'
 
 const modules = [
     {
@@ -70,49 +72,20 @@ export default function Modules() {
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                     {modules.map((mod, index) => (
-                        <div key={index} className="module-card group" onClick={() => setSelectedModule(mod)}>
-                            <h3 className="module-title group-hover:text-blue-400 transition-colors">{mod.title}</h3>
-                            <p className="module-desc">{mod.shortDesc}</p>
-                            <div className="mt-4 text-blue-500 text-xs font-semibold opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1">
-                                <span>Learn more</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-                                </svg>
-                            </div>
-                        </div>
+                        <ModuleCard
+                            key={index}
+                            module={mod}
+                            onClick={() => setSelectedModule(mod)}
+                        />
                     ))}
                 </div>
             </div>
 
             {/* Modal */}
-            {selectedModule && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedModule(null)}>
-                    <div className="bg-slate-900 border border-slate-700 rounded-2xl p-8 max-w-2xl w-full relative shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
-                        <button
-                            onClick={() => setSelectedModule(null)}
-                            className="absolute top-4 right-4 text-slate-400 hover:text-white transition-colors"
-                        >
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                            </svg>
-                        </button>
-
-                        <h2 className="text-3xl font-bold text-white mb-6 border-b border-slate-800 pb-4">{selectedModule.title}</h2>
-                        <div className="text-slate-300 leading-relaxed space-y-4">
-                            <p>{selectedModule.fullDesc}</p>
-                        </div>
-
-                        <div className="mt-8 flex justify-end">
-                            <button
-                                onClick={() => setSelectedModule(null)}
-                                className="px-6 py-2 rounded-lg bg-blue-600 hover:bg-blue-500 text-white transition-colors"
-                            >
-                                Close
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <ModuleModal
+                module={selectedModule}
+                onClose={() => setSelectedModule(null)}
+            />
         </section>
     )
 }

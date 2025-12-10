@@ -2,15 +2,16 @@ import React, { useState } from 'react'
 
 const members = [
   {
-    name: 'Mohan Supe',
+    name: 'Mohan Ashok Supe',
     role: 'Front-end Developer',
     bio: 'Developing the frontend of the project.',
     img: '/assets/mohan.jpg',
     details: {
       fullName: 'MOHAN ASHOK SUPE',
-      course: 'Final Year Btech Computer Science Engineering',
+      course: 'Btech Computer Science Engineering',
       institute: 'Ajeenkya DY Patil University',
-      github: 'https://github.com/mohansupe',
+      Github: 'https://github.com/mohansupe',
+      Linkedin: 'https://www.linkedin.com/in/mohansupe/',
       phone: '+91 7030085985',
       email: 'mohan.supe@adypu.edu.in'
     }
@@ -102,10 +103,16 @@ export default function Team() {
                 </div>
 
                 <div className="space-y-2 pt-2">
-                  <a href={selectedMember.details.github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors group">
+                  <a href={selectedMember.details.Github} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors group">
                     <i className="fab fa-github text-xl text-slate-400 group-hover:text-white"></i>
                     <span className="text-blue-400 group-hover:underline">GitHub Profile</span>
                   </a>
+                  {selectedMember.details.Linkedin && (
+                    <a href={selectedMember.details.Linkedin} target="_blank" rel="noopener noreferrer" className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors group">
+                      <i className="fab fa-linkedin text-xl text-slate-400 group-hover:text-white"></i>
+                      <span className="text-blue-400 group-hover:underline">LinkedIn Profile</span>
+                    </a>
+                  )}
                   <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
                     <i className="fas fa-phone text-xl text-slate-400"></i>
                     <span>{selectedMember.details.phone}</span>
