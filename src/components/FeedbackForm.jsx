@@ -11,19 +11,35 @@ export default function FeedbackForm() {
     setLoading(true)
     const form = new FormData(e.target)
     const payload = { name: form.get('name'), email: form.get('email'), message: form.get('message') }
-    try {
-      const { error } = await supabase
-        .from('feedback')
-        .insert([payload])
 
-      if (!error) {
-        setDone(true)
-        e.target.reset()
-      } else {
-        console.error('Supabase error:', error)
-        alert('Error sending feedback')
+    let attempts = 0;
+    while (attempts < 3) {
+      try {
+        const { error } = await supabase
+          .from('feedback')
+          .insert([payload])
+
+        if (!error) {
+          setDone(true)
+          e.target.reset()
+          setLoading(false)
+          return; // Success, exit function
+        }
+
+        console.warn(`Attempt ${attempts + 1} failed:`, error);
+        attempts++;
+        if (attempts < 3) await new Promise(r => setTimeout(r, 1000)); // Wait 1s before retry
+
+      } catch (err) {
+        console.error(`Attempt ${attempts + 1} exception:`, err);
+        attempts++;
+        if (attempts < 3) await new Promise(r => setTimeout(r, 1000));
       }
-    } catch (err) { console.error(err); alert('Network error') }
+    }
+
+    // If we get here, all retries failed
+    console.error('All feedback submission attempts failed.');
+    alert('Error sending feedback after multiple attempts. Please try again later.');
     setLoading(false)
   }
 
