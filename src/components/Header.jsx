@@ -195,7 +195,7 @@ export default function Header() {
         <nav className="hidden md:flex items-center gap-8">
           <Link to="/" className="nav-link">Home</Link>
           <Link to="/about" className="nav-link">About</Link>
-          <Link to="/contact" className="nav-link">Contact</Link>
+
         </nav>
 
         {/* Desktop Actions */}
@@ -232,7 +232,7 @@ export default function Header() {
           <nav className="flex flex-col p-6 space-y-4">
             <Link to="/" className="nav-link text-lg block py-2" onClick={() => setIsMobileMenuOpen(false)}>Home</Link>
             <Link to="/about" className="nav-link text-lg block py-2" onClick={() => setIsMobileMenuOpen(false)}>About</Link>
-            <Link to="/contact" className="nav-link text-lg block py-2" onClick={() => setIsMobileMenuOpen(false)}>Contact</Link>
+
 
             <div className="pt-4 border-t border-slate-800 flex flex-col gap-4">
               {hasEarlyAccess && (
