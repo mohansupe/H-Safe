@@ -16,9 +16,51 @@ const members = [
       email: 'mohan.supe@adypu.edu.in'
     }
   },
-  { name: 'Hrishikesh Badgujar', role: 'Front-end Developer', bio: 'Developing the frontend of the project.', img: '/assets/hrishi.jpg' },
-  { name: 'Varad Khopkar', role: 'Backend Developer', bio: 'Implementing & developing logic.', img: '/assets/varad.jpg' },
-  { name: 'Khushi Gupta', role: 'Research', bio: 'Documenting & Research.', img: '/assets/khushi.jpg' },
+  {
+    name: 'Hrishikesh Badgujar',
+    role: 'Front-end Developer',
+    bio: 'Developing the frontend of the project.',
+    img: '/assets/hrishi.jpg',
+    details: {
+      fullName: 'Hrishikesh Badgujar',
+      course: 'Btech Computer Science Engineering',
+      institute: 'Ajeenkya DY Patil University',
+      Github: 'https://github.com/hrishikesh2810',
+      Linkedin: 'https://www.linkedin.com/in/hrishikesh-badgujar/',
+      phone: '+91 9404755864',
+      email: 'Hrishikesh.badgujar@adypu.edu.in'
+    }
+  },
+  {
+    name: 'Varad Khopkar',
+    role: 'Backend Developer',
+    bio: 'Implementing & developing logic.',
+    img: '/assets/varad.jpg',
+    details: {
+      fullName: 'Varad Khopkar',
+      course: 'Btech Cyber Security Engineering',
+      institute: 'Ajeenkya DY Patil University',
+      Github: 'https://github.com/Varad-Khopkar',
+      Linkedin: 'https://www.linkedin.com/in/varad-khopkar/',
+      phone: '+91 7666023759',
+      email: 'varad.khopkar@adypu.edu.in'
+    }
+  },
+  {
+    name: 'Khushi Gupta',
+    role: 'Research',
+    bio: 'Documenting & Research.',
+    img: '/assets/khushi.jpg',
+    details: {
+      fullName: 'Khushi Gupta',
+      course: 'Btech Computer Science Engineering',
+      institute: 'Ajeenkya DY Patil University',
+      Github: 'https://github.com/khushiiGupta016',
+      Linkedin: 'https://www.linkedin.com/in/khushi-gupta-270022249/',
+      phone: '+91 73852 26206',
+      email: 'khushi.gupta@adypu.edu.in'
+    }
+  },
 ]
 
 export default function Team() {
