@@ -8,6 +8,7 @@ import Admin from './Admin'
 import Dashboard from './Dashboard'
 import Simulator from './Simulator'
 import Unauthorized from './Unauthorized'
+import ProtectedRoute from '../components/ProtectedRoute'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 
@@ -22,7 +23,14 @@ export default function App() {
 
           <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<Dashboard />} />
-          <Route path="/simulator" element={<Simulator />} />
+          <Route
+            path="/simulator"
+            element={
+              <ProtectedRoute>
+                <Simulator />
+              </ProtectedRoute>
+            }
+          />
           <Route path="/unauthorized" element={<Unauthorized />} />
         </Routes>
       </main>
