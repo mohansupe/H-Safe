@@ -1,9 +1,9 @@
 import React from "react";
 import Hero from "../components/Hero";
-import Features from "../components/Features";
+import WhyHSafe from "../components/WhyHSafe";
+import TargetAudience from "../components/TargetAudience";
 import Modules from "../components/Modules";
 import ProgressSection from "../components/ProgressSection";
-import FeedbackForm from "../components/FeedbackForm";
 
 export default function Home() {
   // optionally pass data prop to change percent and lists
@@ -23,10 +23,10 @@ export default function Home() {
   return (
     <div>
       <Hero />
-      <ProgressSection data={progressData} />
+      <WhyHSafe />
       <Modules />
-      <Features />
-      <FeedbackForm />
+      <TargetAudience />
+      <ProgressSection data={progressData} />
     </div>
   );
 }

@@ -1,8 +1,11 @@
-
 import React from 'react'
 import { Routes, Route, Link } from 'react-router-dom'
 import Home from './Home'
 import About from './About'
+import Team from './Team'
+import Features from './Features'
+import Documentation from './Documentation'
+import Contact from './Contact'
 
 import Admin from './Admin'
 import Dashboard from './Dashboard'
@@ -20,6 +23,10 @@ export default function App() {
         <Routes>
           <Route path="/" element={<Home />} />
           <Route path="/about" element={<About />} />
+          <Route path="/team" element={<Team />} />
+          <Route path="/features" element={<Features />} />
+          <Route path="/documentation" element={<Documentation />} />
+          <Route path="/contact" element={<Contact />} />
 
           <Route path="/admin" element={<Admin />} />
           <Route path="/dashboard" element={<Dashboard />} />

@@ -4,29 +4,29 @@ import ModuleModal from './modules/ModuleModal'
 
 const modules = [
     {
-        title: "Rules Addition",
-        shortDesc: "Create and add custom security rules to monitor network traffic.",
-        fullDesc: "This module allows administrators to create and add custom security rules to monitor network traffic. Users can define conditions such as IP ranges, protocols, ports, signatures, or suspicious behavior patterns. The rules act as the first layer of defense by specifying what type of activity should be flagged, logged, or blocked."
+        title: "Rule Addition",
+        shortDesc: "Create and manage custom detection rules tailored to your security needs.",
+        fullDesc: "Create and manage custom detection rules tailored to your security needs. Define specific criteria to flag or block traffic, ensuring your network is protected against known and emerging threats."
     },
     {
-        title: "Rules Implementation",
-        shortDesc: "Apply rules to the network monitoring engine to inspect traffic in real time.",
-        fullDesc: "Once rules are created, this module applies them to the network monitoring engine. The implemented rules actively inspect incoming and outgoing traffic in real time. This ensures that any event matching the defined rule triggers alerts, prevents attacks, or generates logs for further analysis."
+        title: "Rule Implementation",
+        shortDesc: "Deploy, test, and validate rules in real-time against network activity.",
+        fullDesc: "Deploy, test, and validate rules in real-time against network activity. Ensure that your security policies are effective without disrupting legitimate traffic flow."
     },
     {
         title: "PCAP File Analysis",
-        shortDesc: "Analyze Packet Capture (PCAP) files to identify malicious packets and anomalies.",
-        fullDesc: "This module analyzes Packet Capture (PCAP) files to identify malicious packets, anomalies, or suspicious communication. It extracts details such as source/destination IPs, ports, protocols, payload data, timestamps, and intrusion signatures. This is useful for offline investigation, training datasets, and forensic analysis."
+        shortDesc: "Dive deep into packet captures to identify anomalies, attacks, and suspicious traffic patterns.",
+        fullDesc: "Dive deep into packet captures to identify anomalies, attacks, and suspicious traffic patterns. Upload PCAP files to visualize traffic, inspect payloads, and uncover hidden threats."
     },
     {
         title: "Network Topology Simulation",
-        shortDesc: "Visually simulate a virtual network environment with nodes and connections.",
-        fullDesc: "This module visually simulates a virtual network environment. Users can create nodes (servers, routers, switches, IoT devices) and map connections between them. It helps in understanding how traffic flows, how attacks spread, and where security rules should be deployed. Great for planning, testing, and educational demonstrations."
+        shortDesc: "Visualize network architecture and simulate attack paths and traffic flow.",
+        fullDesc: "Visualize network architecture and simulate attack paths and traffic flow. Design virtual networks to understand vulnerabilities and test defense strategies in a safe environment."
     },
     {
         title: "Post-Attack Analysis",
-        shortDesc: "Detailed insights and timeline of events after an attack is detected.",
-        fullDesc: "This module provides detailed insights after an attack is detected. It shows the timeline of events, affected nodes, attack vector, exploited vulnerabilities, and impact assessment. The module helps identify root causes, improve rules, strengthen configurations, and update future defensive strategies."
+        shortDesc: "Understand attacker behavior, uncover vulnerabilities, and improve your defenses.",
+        fullDesc: "Understand attacker behavior, uncover vulnerabilities, and improve your defenses. Analyze incident data to generate reports and actionable insights for future prevention."
     }
 ]
 
