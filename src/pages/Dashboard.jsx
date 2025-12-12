@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import { useUser, RedirectToSignIn } from '@clerk/clerk-react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
 
 export default function Dashboard() {
@@ -7,11 +8,23 @@ export default function Dashboard() {
     const [status, setStatus] = useState(null) // 'pending', 'approved', 'rejected', or null (not applied)
     const [loading, setLoading] = useState(true)
 
+    const navigate = useNavigate(); // Add this import
+
     useEffect(() => {
         if (isSignedIn && user) {
             checkStatus()
         }
     }, [isSignedIn, user])
+
+    // New useEffect for redirecting rejected/waitlisted users
+    useEffect(() => {
+        if (status === 'rejected') {
+            const timeout = setTimeout(() => {
+                navigate('/')
+            }, 4000)
+            return () => clearTimeout(timeout)
+        }
+    }, [status, navigate])
 
     async function checkStatus() {
         try {
@@ -88,7 +101,8 @@ export default function Dashboard() {
                             <div>
                                 <div className="text-blue-400 text-5xl mb-4"><i className="fas fa-heart"></i></div>
                                 <h2 className="text-2xl font-bold mb-2">Thanks for applying</h2>
-                                <p className="text-slate-300">You are on our waitlist. We'll let you know when spots open up!</p>
+                                <p className="text-slate-300 mb-2">You are on our waitlist. We'll let you know when spots open up!</p>
+                                <p className="text-slate-500 text-sm">Redirecting to home in 4 seconds...</p>
                             </div>
                         )}
 
