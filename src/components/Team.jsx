@@ -12,7 +12,7 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/mohansupe',
       Linkedin: 'https://www.linkedin.com/in/mohansupe/',
-      phone: '+91 7030085985',
+
       email: 'mohan.supe@adypu.edu.in'
     }
   },
@@ -27,7 +27,7 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/hrishikesh2810',
       Linkedin: 'https://www.linkedin.com/in/hrishikesh-badgujar/',
-      phone: '+91 9404755864',
+
       email: 'Hrishikesh.badgujar@adypu.edu.in'
     }
   },
@@ -42,7 +42,7 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/Varad-Khopkar',
       Linkedin: 'https://www.linkedin.com/in/varad-khopkar/',
-      phone: '+91 7666023759',
+
       email: 'varad.khopkar@adypu.edu.in'
     }
   },
@@ -57,7 +57,7 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/khushiiGupta016',
       Linkedin: 'https://www.linkedin.com/in/khushi-gupta-270022249/',
-      phone: '+91 73852 26206',
+
       email: 'khushi.gupta@adypu.edu.in'
     }
   },
@@ -155,10 +155,7 @@ export default function Team() {
                       <span className="text-blue-400 group-hover:underline">LinkedIn Profile</span>
                     </a>
                   )}
-                  <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
-                    <i className="fas fa-phone text-xl text-slate-400"></i>
-                    <span>{selectedMember.details.phone}</span>
-                  </div>
+
                   <div className="flex items-center gap-3 p-3 rounded-lg hover:bg-slate-800 transition-colors">
                     <i className="fas fa-envelope text-xl text-slate-400"></i>
                     <a href={`mailto:${selectedMember.details.email}`} className="text-blue-400 hover:underline">{selectedMember.details.email}</a>
