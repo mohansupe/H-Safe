@@ -33,7 +33,7 @@ const RevealOnScroll = ({ children, delay = 0 }) => {
         <div
             ref={ref}
             style={{ transitionDelay: `${delay}ms` }}
-            className={`transition-all duration-1000 ease-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-20'
+            className={`transition-all duration-1000 ease-in-out transform ${isVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-10'
                 }`}
         >
             {children}
