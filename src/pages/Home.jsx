@@ -23,25 +23,11 @@ export default function Home() {
 
   return (
     <div className="overflow-hidden">
-      <RevealOnScroll>
-        <Hero />
-      </RevealOnScroll>
-
-      <RevealOnScroll delay={200}>
-        <WhyHSafe />
-      </RevealOnScroll>
-
-      <RevealOnScroll delay={200}>
-        <Modules />
-      </RevealOnScroll>
-
-      <RevealOnScroll delay={200}>
-        <TargetAudience />
-      </RevealOnScroll>
-
-      <RevealOnScroll delay={200}>
-        <ProgressSection data={progressData} />
-      </RevealOnScroll>
+      <Hero />
+      <WhyHSafe />
+      <Modules />
+      <TargetAudience />
+      <ProgressSection data={progressData} />
     </div>
   );
 }

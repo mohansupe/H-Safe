@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import ModuleCard from './modules/ModuleCard'
 import ModuleModal from './modules/ModuleModal'
+import RevealOnScroll from './RevealOnScroll'
 
 const modules = [
     {
@@ -70,15 +71,17 @@ export default function Modules() {
                     <h2 className="text-4xl font-bold text-white mb-2">Core Modules</h2>
                     <p className="text-slate-400">Comprehensive tools for network security management and analysis.</p>
                 </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {modules.map((mod, index) => (
-                        <ModuleCard
-                            key={index}
-                            module={mod}
-                            onClick={() => setSelectedModule(mod)}
-                        />
-                    ))}
-                </div>
+                <RevealOnScroll>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        {modules.map((mod, index) => (
+                            <ModuleCard
+                                key={index}
+                                module={mod}
+                                onClick={() => setSelectedModule(mod)}
+                            />
+                        ))}
+                    </div>
+                </RevealOnScroll>
             </div>
 
             {/* Modal */}

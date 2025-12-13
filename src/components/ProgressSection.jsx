@@ -1,5 +1,6 @@
 // src/components/ProgressSection.jsx
 import React, { useEffect, useState } from "react";
+import RevealOnScroll from "./RevealOnScroll";
 
 const defaultData = {
   percent: 29,
@@ -201,60 +202,62 @@ export default function ProgressSection({ data = defaultData }) {
           </p>
         </div>
 
-        <div className="bento-grid">
-          {/* Progress Bar - Full Width */}
-          <div className="bento-item progress-container">
-            <div className="progress-label">
-              <span>Overall Progress</span>
-              <span className="text-blue-400 font-bold text-lg">{percent}%</span>
+        <RevealOnScroll>
+          <div className="bento-grid">
+            {/* Progress Bar - Full Width */}
+            <div className="bento-item progress-container">
+              <div className="progress-label">
+                <span>Overall Progress</span>
+                <span className="text-blue-400 font-bold text-lg">{percent}%</span>
+              </div>
+              <div className="progress-bar-container">
+                <div
+                  className="progress-bar"
+                  style={{ width: `${percent}%` }}
+                />
+              </div>
             </div>
-            <div className="progress-bar-container">
-              <div
-                className="progress-bar"
-                style={{ width: `${percent}%` }}
-              />
+
+            {/* Completed */}
+            <div className="bento-item">
+              <h3 className="bento-title">Completed</h3>
+              <ul className="item-list">
+                {data.completed.map((item, idx) => (
+                  <li key={idx} className="group">
+                    <div className="flex-shrink-0 mt-1"><CheckIcon /></div>
+                    <div className="group-hover:text-blue-300 transition-colors">{item}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* In Progress */}
+            <div className="bento-item">
+              <h3 className="bento-title">In Progress</h3>
+              <ul className="item-list">
+                {data.inProgress.map((item, idx) => (
+                  <li key={idx} className="group">
+                    <div className="flex-shrink-0 mt-1"><SyncIcon /></div>
+                    <div className="group-hover:text-blue-300 transition-colors">{item}</div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            {/* Planned */}
+            <div className="bento-item">
+              <h3 className="bento-title">Planned</h3>
+              <ul className="item-list">
+                {data.planned.map((item, idx) => (
+                  <li key={idx} className="group">
+                    <div className="flex-shrink-0 mt-1"><DotIcon /></div>
+                    <div className="group-hover:text-blue-300 transition-colors">{item}</div>
+                  </li>
+                ))}
+              </ul>
             </div>
           </div>
-
-          {/* Completed */}
-          <div className="bento-item">
-            <h3 className="bento-title">Completed</h3>
-            <ul className="item-list">
-              {data.completed.map((item, idx) => (
-                <li key={idx} className="group">
-                  <div className="flex-shrink-0 mt-1"><CheckIcon /></div>
-                  <div className="group-hover:text-blue-300 transition-colors">{item}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* In Progress */}
-          <div className="bento-item">
-            <h3 className="bento-title">In Progress</h3>
-            <ul className="item-list">
-              {data.inProgress.map((item, idx) => (
-                <li key={idx} className="group">
-                  <div className="flex-shrink-0 mt-1"><SyncIcon /></div>
-                  <div className="group-hover:text-blue-300 transition-colors">{item}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Planned */}
-          <div className="bento-item">
-            <h3 className="bento-title">Planned</h3>
-            <ul className="item-list">
-              {data.planned.map((item, idx) => (
-                <li key={idx} className="group">
-                  <div className="flex-shrink-0 mt-1"><DotIcon /></div>
-                  <div className="group-hover:text-blue-300 transition-colors">{item}</div>
-                </li>
-              ))}
-            </ul>
-          </div>
-        </div>
+        </RevealOnScroll>
       </div>
     </section>
   );

@@ -1,4 +1,5 @@
 import React from 'react'
+import RevealOnScroll from './RevealOnScroll'
 
 const targets = [
     "Cybersecurity Students",
@@ -30,15 +31,17 @@ export default function TargetAudience() {
                     <div className="h-1 w-24 bg-blue-500 mx-auto rounded-full"></div>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
-                    {targets.map((target, idx) => (
-                        <div key={idx} className="target-card p-8 rounded-2xl flex items-center justify-center text-center group">
-                            <span className="text-lg font-semibold text-slate-300 group-hover:text-blue-400 transition-colors">
-                                {target}
-                            </span>
-                        </div>
-                    ))}
-                </div>
+                <RevealOnScroll>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 max-w-6xl mx-auto">
+                        {targets.map((target, idx) => (
+                            <div key={idx} className="target-card p-8 rounded-2xl flex items-center justify-center text-center group">
+                                <span className="text-lg font-semibold text-slate-300 group-hover:text-blue-400 transition-colors">
+                                    {target}
+                                </span>
+                            </div>
+                        ))}
+                    </div>
+                </RevealOnScroll>
             </div>
         </section>
     )
