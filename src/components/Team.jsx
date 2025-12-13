@@ -1,4 +1,5 @@
 import React, { useState } from 'react'
+import RevealOnScroll from './RevealOnScroll'
 
 const members = [
   {
@@ -68,49 +69,54 @@ export default function Team() {
 
   return (
     <>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        {members.map((m, i) => (
-          <div
-            key={i}
-            onClick={() => setSelectedMember(m)}
-            className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer group"
-          >
-            <div className="relative inline-block">
-              <img src={m.img} alt={m.name} className="w-28 h-28 rounded-full mx-auto mb-4 object-cover group-hover:scale-105 transition-transform duration-300" />
-              {m.details && (
-                <div className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
-                  Info
-                </div>
-              )}
+      <RevealOnScroll>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {members.map((m, i) => (
+            <div
+              key={i}
+              onClick={() => setSelectedMember(m)}
+              className="bg-slate-800 border border-slate-700 rounded-lg p-6 text-center hover:border-blue-500 hover:shadow-lg hover:shadow-blue-500/20 transition-all cursor-pointer group"
+            >
+              <div className="relative inline-block">
+                <img src={m.img} alt={m.name} className="w-28 h-28 rounded-full mx-auto mb-4 object-cover group-hover:scale-105 transition-transform duration-300" />
+                {m.details && (
+                  <div className="absolute bottom-0 right-0 bg-blue-600 text-white text-xs px-2 py-1 rounded-full shadow-md">
+                    Info
+                  </div>
+                )}
+              </div>
+              <h3 className="font-semibold text-white">{m.name}</h3>
+              <div className="text-slate-400 text-sm">{m.role}</div>
+              <p className="text-slate-500 text-xs mt-2">{m.bio}</p>
             </div>
-            <h3 className="font-semibold text-white">{m.name}</h3>
-            <div className="text-slate-400 text-sm">{m.role}</div>
-            <p className="text-slate-500 text-xs mt-2">{m.bio}</p>
-          </div>
-        ))}
-      </div>
+          ))}
+        </div>
+      </RevealOnScroll>
 
       {/* Project Guide Section */}
-      <div className="mt-16 text-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <h3 className="text-slate-500 text-sm uppercase tracking-widest font-semibold mb-6">Project Under Guidance of</h3>
-        <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8 max-w-2xl mx-auto hover:border-blue-500/50 transition-all group">
-          <div className="flex flex-col md:flex-row items-center gap-8">
-            <div className="relative">
-              <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
-              <img
-                src="/assets/santoshsir.png"
-                alt="Dr. Santosh Borde"
-                className="w-32 h-32 rounded-full object-cover border-4 border-slate-700 group-hover:border-blue-500 transition-colors relative z-10"
-              />
-            </div>
-            <div className="text-center md:text-left">
-              <h4 className="text-2xl font-bold text-white mb-2">Dr. Santosh Borde Sir</h4>
-              <p className="text-blue-400 font-medium mb-1">Director - Students Progression and Corporate Relations</p>
-              <p className="text-slate-400 text-sm">@Ajeenkya DY Patil Group of Institutes</p>
+      {/* Project Guide Section */}
+      <RevealOnScroll delay={200}>
+        <div className="mt-16 text-center">
+          <h3 className="text-slate-500 text-sm uppercase tracking-widest font-semibold mb-6">Project Under Guidance of</h3>
+          <div className="bg-slate-800/50 border border-slate-700 rounded-2xl p-8 max-w-2xl mx-auto hover:border-blue-500/50 transition-all group">
+            <div className="flex flex-col md:flex-row items-center gap-8">
+              <div className="relative">
+                <div className="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-20 group-hover:opacity-40 transition-opacity"></div>
+                <img
+                  src="/assets/santoshsir.png"
+                  alt="Dr. Santosh Borde"
+                  className="w-32 h-32 rounded-full object-cover border-4 border-slate-700 group-hover:border-blue-500 transition-colors relative z-10"
+                />
+              </div>
+              <div className="text-center md:text-left">
+                <h4 className="text-2xl font-bold text-white mb-2">Dr. Santosh Borde Sir</h4>
+                <p className="text-blue-400 font-medium mb-1">Director - Students Progression and Corporate Relations</p>
+                <p className="text-slate-400 text-sm">@Ajeenkya DY Patil Group of Institutes</p>
+              </div>
             </div>
           </div>
         </div>
-      </div>
+      </RevealOnScroll>
 
       {/* Modal */}
       {selectedMember && (
