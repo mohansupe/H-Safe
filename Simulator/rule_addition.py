@@ -8,7 +8,24 @@ from typing import List, Optional
 
 from schema import Rule, RuleConditions, validate_rule
 
-RULE_STORE_PATH = "rules.json"
+import shutil
+
+RULE_STORE_PATH = "/tmp/rules.json"  # Use /tmp for serverless consistency
+BUNDLED_RULES_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "rules.json")
+
+def _initialize_storage():
+    """Ensure writable rules file exists in /tmp"""
+    if not os.path.exists(RULE_STORE_PATH):
+        if os.path.exists(BUNDLED_RULES_PATH):
+            try:
+                shutil.copy(BUNDLED_RULES_PATH, RULE_STORE_PATH)
+            except Exception:
+                # Fallback to empty list if copy fails/bundled file issues
+                with open(RULE_STORE_PATH, "w") as f:
+                    json.dump([], f)
+        else:
+             with open(RULE_STORE_PATH, "w") as f:
+                json.dump([], f)
 
 
 # =========================
@@ -16,6 +33,7 @@ RULE_STORE_PATH = "rules.json"
 # =========================
 
 def _load_rules_from_disk() -> List[Rule]:
+    _initialize_storage()
     if not os.path.exists(RULE_STORE_PATH):
         return []
 

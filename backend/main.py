@@ -67,17 +67,7 @@ def read_root():
 def get_rules():
     """List all firewall rules."""
     try:
-        # We need to ensure we are in the right directory for rules.json or handle paths
-        # For now, we assume rules.json is in the CWD or we fix it in the module (which uses 'rules.json' relative)
-        # To be safe, let's switch CWD to Simulator temporarily or fix the module. 
-        # Ideally, we should update the module to use absolute paths, but for now let's try running.
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-            
         rules = rule_addition.get_all_rules(include_disabled=True)
-        
-        os.chdir(cwd) # Restore
         return rules
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -86,14 +76,6 @@ def get_rules():
 def create_rule(rule: RuleCreate):
     """Create a new firewall rule."""
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
-        # Assuming the Pydantic model doesn't have position yet, we need to update it
-        # But for now let's just use what's there and default position to None.
-        # Wait, I should update the Pydantic model first.
-        
         new_rule = rule_addition.add_rule(
             name=rule.name,
             description=rule.description,
@@ -104,8 +86,6 @@ def create_rule(rule: RuleCreate):
             enabled=rule.enabled,
             position=None # Frontend doesn't send this often on create, usually default append
         )
-        
-        os.chdir(cwd)
         return new_rule
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
@@ -116,13 +96,8 @@ def create_rule(rule: RuleCreate):
 def move_rule_endpoint(rule_id: str, new_position: int = Body(..., embed=True)):
     """Move a rule to a new position."""
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
         success = rule_addition.move_rule(rule_id, new_position)
         
-        os.chdir(cwd)
         if not success:
             raise HTTPException(status_code=404, detail="Rule not found")
         return {"ok": True}
@@ -133,13 +108,8 @@ def move_rule_endpoint(rule_id: str, new_position: int = Body(..., embed=True)):
 def delete_rule(rule_id: str):
     """Delete a firewall rule."""
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
         success = rule_addition.delete_rule(rule_id)
         
-        os.chdir(cwd)
         if not success:
             raise HTTPException(status_code=404, detail="Rule not found")
         return {"ok": True}
@@ -150,17 +120,11 @@ def delete_rule(rule_id: str):
 def update_rule_endpoint(rule_id: str, rule: RuleCreate):
     """Update an existing firewall rule."""
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
         # Convert Pydantic model to dict
         updates = rule.dict()
         
         # Call update logic
         updated = rule_addition.update_rule(rule_id, updates)
-        
-        os.chdir(cwd)
         
         if not updated:
             raise HTTPException(status_code=404, detail="Rule not found")
@@ -175,13 +139,7 @@ def update_rule_endpoint(rule_id: str, rule: RuleCreate):
 def toggle_rule_status(rule_id: str, enabled: bool = Body(..., embed=True)):
     """Enable or disable a rule."""
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
         updated = rule_addition.toggle_rule(rule_id, enabled)
-        
-        os.chdir(cwd)
         
         if not updated:
             raise HTTPException(status_code=404, detail="Rule not found")
@@ -192,7 +150,8 @@ def toggle_rule_status(rule_id: str, enabled: bool = Body(..., embed=True)):
 
 # --- PCAP MANAGEMENT ---
 
-UPLOAD_DIR = os.path.join(simulator_path, "uploads")
+# Use /tmp/uploads for Vercel compatibility
+UPLOAD_DIR = "/tmp/uploads" # os.path.join(simulator_path, "uploads")
 os.makedirs(UPLOAD_DIR, exist_ok=True)
 PERSISTENT_PCAP_PATH = os.path.join(UPLOAD_DIR, "current.pcap")
 
@@ -239,10 +198,6 @@ async def run_simulation(file: Optional[UploadFile] = File(None)):
         raise HTTPException(status_code=400, detail="No PCAP file provided or found on server.")
 
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-        
         # 1. Load active rules
         rules = rule_addition.get_all_rules(include_disabled=False)
         
@@ -257,8 +212,6 @@ async def run_simulation(file: Optional[UploadFile] = File(None)):
             "report": final_report,
             "simulation": simulation_result 
         }
-        
-        os.chdir(cwd)
         return response
 
     except Exception as e:
@@ -285,10 +238,6 @@ def run_topology_simulation(req: TopologySimRequest):
     3. Return analysis.
     """
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-
         # 1. Generate Packets
         # Ensure paths are tuples for the internal logic if strictly required, 
         # but the module uses (src, dst) in paths check. JSON arrays come as lists.
@@ -368,7 +317,6 @@ def run_topology_simulation(req: TopologySimRequest):
             }
         }
 
-        os.chdir(cwd)
         return response
 
     except Exception as e:
@@ -390,10 +338,6 @@ def export_report_endpoint(req: ExportRequest):
     Export simulation report to specified format.
     """
     try:
-        cwd = os.getcwd()
-        if os.path.exists(simulator_path):
-            os.chdir(simulator_path)
-            
         import report_generator
         
         # Create a temp file path
@@ -411,10 +355,8 @@ def export_report_endpoint(req: ExportRequest):
             report_generator.export_json(req.report, output_path)
             media_type = "application/json"
         else:
-            os.chdir(cwd)
             raise HTTPException(status_code=400, detail="Unsupported format. Use pdf, csv, or json.")
             
-        os.chdir(cwd)
         
         if not os.path.exists(output_path):
              raise HTTPException(status_code=500, detail="Failed to generate report file.")
