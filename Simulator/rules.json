@@ -1,0 +1,43 @@
+[
+    {
+        "rule_id": "377c567b-dd4c-49ea-8374-a0bb7c8c6814",
+        "name": "deny",
+        "description": "Block all",
+        "severity": "HIGH",
+        "action": "DENY",
+        "protocol": "TCP",
+        "conditions": {
+            "src_ip": "192.168.0.1",
+            "dst_ip": "10.0.0.5",
+            "dst_port": 80
+        },
+        "enabled": true,
+        "position": 0
+    },
+    {
+        "rule_id": "31307e90-58d8-45de-aa38-22b187e9708b",
+        "name": "test",
+        "description": "twat",
+        "severity": "CRITICAL",
+        "action": "ALERT",
+        "protocol": "UDP",
+        "conditions": {
+            "src_ip": "10.164.19.78",
+            "dst_ip": "80.71.128.11",
+            "dst_port": 53
+        },
+        "enabled": true,
+        "position": 1
+    },
+    {
+        "rule_id": "69a70957-bf43-409c-baa5-90f32a0a6ff9",
+        "name": "Delete Me",
+        "description": "To be deleted",
+        "severity": "LOW",
+        "action": "ALERT",
+        "protocol": "TCP",
+        "conditions": {},
+        "enabled": false,
+        "position": 2
+    }
+]

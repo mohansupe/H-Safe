@@ -1,0 +1,49 @@
+{
+    "overview": {
+        "total_packets": 14243,
+        "allowed": 14243,
+        "denied": 0,
+        "alerted": 0,
+        "highest_severity": "LOW"
+    },
+    "traffic_profile": {
+        "by_protocol": {
+            "TCP": 13708,
+            "UDP": 501,
+            "ICMP": 34
+        },
+        "by_lane": {
+            "HTTP": 3398,
+            "OTHER": 9369,
+            "HTTPS": 1476
+        }
+    },
+    "security_findings": {
+        "rule_hit_count": {},
+        "severity_distribution": {},
+        "top_targeted_assets": [
+            {
+                "ip": "192.168.3.131",
+                "hits": 6184
+            },
+            {
+                "ip": "172.16.255.1",
+                "hits": 1219
+            },
+            {
+                "ip": "10.0.2.15",
+                "hits": 808
+            },
+            {
+                "ip": "204.14.234.85",
+                "hits": 740
+            },
+            {
+                "ip": "65.54.95.68",
+                "hits": 664
+            }
+        ]
+    },
+    "critical_timeline": [],
+    "assessment": "No malicious activity detected. Traffic appears benign."
+}

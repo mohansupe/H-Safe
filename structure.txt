@@ -1,0 +1,66 @@
++-----------------------------------------------------------------------+
+|                           USER (Browser)                              |
++----------------------------------+------------------------------------+
+                                   |
+                                   v
++----------------------------------+------------------------------------+
+|                        FRONTEND (React + Vite)                        |
+|                                                                       |
+|  [ /src ]                                                             |
+|  +-- pages/        (App Routes)                                       |
+|  +-- components/   (UI Components)                                    |
+|  +-- lib/          (Supabase Client & Utils)                          |
+|                                                                       |
+|  Authentication: Clerk (@clerk/clerk-react)                           |
++-----------------+-------------------------------+---------------------+
+                  |                               |
+                  | (HTTP / Fetch)                | (API Calls)
+                  v                               v
++-----------------+-----------------+   +---------+---------------------+
+|    PYTHON BACKEND (FastAPI)       |   |   VERCEL SERVERLESS API       |
+|                                   |   |                               |
+|  [ /backend ]                     |   |  [ /api ]                     |
+|  +-- main.py                      |   |  +-- contact.js               |
+|  +-- Network Tools (Scapy)        |   |  +-- admin-feedback.js        |
+|  +-- Data Analysis (Pandas)       |   |  +-- [Other Serverless Fn]    |
+|                                   |   |                               |
++-----------------+-----------------+   +---------+----------+----------+
+                  |                               |          |
+                  | (DB Access)                   | (DB)     | (Email)
+                  v                               v          v
++-----------------+-------------------------------+    +-----+----------+
+|                 SUPABASE                        |    |    RESEND      |
+|                                                 |    |                |
+|  [ /supabase ]                                  |    | (3rd Party)    |
+|  +-- Database (PostgreSQL)                      |    |                |
+|  +-- Row Level Security (RLS)                   |    +----------------+
+|  +-- Tables (e.g. contact_messages)             |
+|                                                 |
++-------------------------------------------------+
+
++-----------------------------------------------------------------------+
+|                       SIMULATOR ENGINE (Python)                       |
++-----------------------------------------------------------------------+
+|                                                                       |
+|  [ /Simulator ]                                                       |
+|                                                                       |
+|  DATA CONTRACTS:                                                      |
+|  - schema.py (Validates all data structures)                          |
+|                                                                       |
+|  1. CONFIGURATION PHASE                                               |
+|  - topology_simulation.py (Define nodes, paths, firewall location)    |
+|  - rule_addition.py (Create/Manage firewall rules)                    |
+|  - policy_order_analyzer.py (Check rules for conflicts/shadowing)     |
+|                                                                       |
+|  2. EXECUTION PHASE                                                   |
+|  - pcap_analysis.py (Ingest traffic, Simulate packet flow)            |
+|       |-> rule_implementation.py (Apply rules to packets)             |
+|                                                                       |
+|  3. ANALYSIS PHASE                                                    |
+|  - post_attack_analysis.py (Aggregate results, detect anomalies)      |
+|  - rule_effectiveness.py (Metrics on rule performance)                |
+|                                                                       |
+|  4. REPORTING PHASE                                                   |
+|  - report_generator.py (Export JSON/CSV/PDF reports)                  |
+|                                                                       |
++-----------------------------------------------------------------------+
