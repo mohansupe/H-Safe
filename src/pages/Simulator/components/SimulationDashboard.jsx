@@ -325,13 +325,46 @@ export default function SimulationDashboard() {
         }
     };
 
-    // Calculate display data based on playback
-    const displayTimeline = result ? result.simulation.timeline.slice(0, playbackIndex) : [];
+    // Optimized Stats Calculation
+    const [cumulativeStats, setCumulativeStats] = useState([]);
+
+    // Pre-calculate stats when result changes (O(N) once, instead of O(N) every frame)
+    useEffect(() => {
+        if (!result?.simulation?.timeline) return;
+
+        const timeline = result.simulation.timeline;
+        const stats = [];
+        let denied = 0;
+        let alerted = 0;
+
+        timeline.forEach(event => {
+            if (event.action === 'DENY') denied++;
+            if (event.action === 'ALERT') alerted++;
+            stats.push({ denied, alerted });
+        });
+
+        setCumulativeStats(stats);
+    }, [result]);
+
+    // O(1) Lookup during playback
+    const currentStats = (playbackIndex > 0 && cumulativeStats[playbackIndex - 1])
+        ? cumulativeStats[playbackIndex - 1]
+        : { denied: 0, alerted: 0 };
+
     const displayStats = result ? {
         total: playbackIndex,
-        denied: displayTimeline.filter(e => e.action === 'DENY').length,
-        alerted: displayTimeline.filter(e => e.action === 'ALERT').length
+        denied: currentStats.denied,
+        alerted: currentStats.alerted
     } : null;
+
+    // Optimized Table Rendering (Virtualization-ish)
+    // Only show the last 100 packets relative to the playback head
+    // This prevents rendering 10,000 rows which freezes the DOM
+    const VISIBLE_WINDOW = 100;
+    const startIndex = Math.max(0, playbackIndex - VISIBLE_WINDOW);
+    const visibleEvents = result
+        ? result.simulation.timeline.slice(startIndex, playbackIndex).reverse()
+        : [];
 
     return (
         <div className="space-y-8">
@@ -481,6 +514,7 @@ export default function SimulationDashboard() {
                             <h3 className="font-bold text-white">Traffic Analysis Timeline</h3>
                             <span className="text-xs text-slate-400 font-mono uppercase bg-slate-800 px-2 py-1 rounded border border-slate-700">
                                 {playbackIndex < result.simulation.timeline.length ? '● LIVE PLAYBACK' : '✓ COMPLETE'}
+                                <span className="ml-2 text-slate-500">(Showing last {VISIBLE_WINDOW})</span>
                             </span>
                         </div>
                         <div className="max-h-[500px] overflow-y-auto" ref={el => el && el.scrollTo(0, 0)}>
@@ -495,8 +529,11 @@ export default function SimulationDashboard() {
                                     </tr>
                                 </thead>
                                 <tbody className="divide-y divide-slate-700 font-mono">
-                                    {[...displayTimeline].reverse().map((event, idx) => ( // Reverse to show newest on top
-                                        <tr key={idx} className={`hover:bg-slate-700/50 ${event.action === 'DENY' ? 'bg-red-500/10' :
+                                    {visibleEvents.map((event, idx) => (
+                                        // Key needs to be unique. Using index in visible window + start index usually
+                                        // But event object ideally has id. If not, fallback to something unique.
+                                        // Assuming event object doesn't have unique ID, we can us start index + idx
+                                        <tr key={startIndex + idx} className={`hover:bg-slate-700/50 ${event.action === 'DENY' ? 'bg-red-500/10' :
                                             event.action === 'ALERT' ? 'bg-yellow-500/10' : ''
                                             } animate-fade-in`}>
                                             <td className="p-3">{new Date(event.timestamp * 1000).toLocaleTimeString()}</td>
