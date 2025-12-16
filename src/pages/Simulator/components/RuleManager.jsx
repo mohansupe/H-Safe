@@ -133,10 +133,19 @@ export default function RuleManager() {
         setLoading(true);
         try {
             const res = await fetch(`${API_URL}/rules?t=${Date.now()}`);
+            if (!res.ok) {
+                throw new Error(`Server returned ${res.status}`);
+            }
             const data = await res.json();
-            setRules(data);
+            if (Array.isArray(data)) {
+                setRules(data);
+            } else {
+                console.error("Expected array of rules, got:", data);
+                setRules([]);
+            }
         } catch (error) {
             console.error("Failed to fetch rules:", error);
+            setRules([]); // Ensure it's always an array to prevent "map is not a function"
         } finally {
             setLoading(false);
         }

@@ -15,19 +15,18 @@ simulator_path = os.path.join(current_dir, '..', 'Simulator')
 sys.path.append(simulator_path)
 
 # Import Simulator Modules
-try:
-    import rule_addition
-    import rule_implementation
-    import pcap_analysis
-    import report_generator
-    import schema
-    import post_attack_analysis
-except ImportError as e:
-    print(f"Error importing Simulator modules: {e}")
-    # Fallback for dev environment if paths are tricky
-    pass
+import rule_addition
+import rule_implementation
+import pcap_analysis
+import report_generator
+import schema
+import post_attack_analysis
 
-app = FastAPI()
+# Determine root_path based on environment
+# Vercel passes the full path /api/... so we need to tell FastAPI that /api is the root
+root_path = "/api" if os.environ.get("VERCEL") else ""
+
+app = FastAPI(root_path=root_path)
 
 # Allow CORS for React frontend
 app.add_middleware(

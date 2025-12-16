@@ -28,16 +28,5 @@
         },
         "enabled": true,
         "position": 1
-    },
-    {
-        "rule_id": "69a70957-bf43-409c-baa5-90f32a0a6ff9",
-        "name": "Delete Me",
-        "description": "To be deleted",
-        "severity": "LOW",
-        "action": "ALERT",
-        "protocol": "TCP",
-        "conditions": {},
-        "enabled": false,
-        "position": 2
     }
 ]
