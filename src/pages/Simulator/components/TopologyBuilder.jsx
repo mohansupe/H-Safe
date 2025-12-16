@@ -359,39 +359,36 @@ const SimulationPanel = ({ nodes, onRunSimulation, simulationResult, isSimulatin
             {simulationResult && (
                 <div className="border-t border-slate-800 pt-3">
                     <div className="flex justify-between items-center mb-2">
-                        <span className="text-xs font-bold text-slate-400">Result Summary</span>
-                        <span className="text-[10px] text-slate-500">
-                            {simulationResult.summary.total_packets} Packets
+                        <span className="text-xs font-bold text-slate-400">Simulation Trace</span>
+                        <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${simulationResult.outcome === 'BLOCKED' ? 'bg-red-500/20 text-red-500' :
+                                simulationResult.outcome === 'ARRIVED' ? 'bg-green-500/20 text-green-500' : 'text-slate-500'
+                            }`}>
+                            {simulationResult.outcome}
                         </span>
                     </div>
-                    {/* Simple visualization of outcome - check if any detections were DENY */}
-                    {(() => {
-                        const denies = simulationResult.detections.filter(d => d.action === 'DENY');
-                        const alerts = simulationResult.detections.filter(d => d.action === 'ALERT');
 
-                        if (denies.length > 0) {
-                            return (
-                                <div className="bg-red-500/10 border border-red-500/20 text-red-400 p-2 rounded text-xs text-center">
-                                    <ShieldCheck className="w-4 h-4 mx-auto mb-1" />
-                                    Blocked by Firewall ({denies.length})
+                    <div className="space-y-1 max-h-40 overflow-y-auto">
+                        {/* Display Message if failure */}
+                        {!simulationResult.success && (
+                            <div className="text-xs text-red-400 p-2 bg-red-900/10 border border-red-900/30 rounded">
+                                {simulationResult.message}
+                            </div>
+                        )}
+
+                        {/* Hop List */}
+                        {simulationResult.trace && simulationResult.trace.map((step, idx) => (
+                            <div key={idx} className={`text-[10px] p-2 rounded border border-l-2 flex flex-col gap-1 ${step.action === 'DROP' ? 'bg-red-950/30 border-slate-800 border-l-red-500' :
+                                    step.action === 'FORWARD' && step.detections.length > 0 ? 'bg-yellow-950/30 border-slate-800 border-l-yellow-500' :
+                                        'bg-slate-800 border-slate-700 border-l-blue-500'
+                                }`}>
+                                <div className="flex justify-between font-bold">
+                                    <span className="text-slate-300">Hop {step.hop}: {step.node_id}</span>
+                                    <span className={step.action === 'DROP' ? 'text-red-400' : 'text-green-500'}>{step.action}</span>
                                 </div>
-                            );
-                        } else if (alerts.length > 0) {
-                            return (
-                                <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-400 p-2 rounded text-xs text-center">
-                                    <ShieldCheck className="w-4 h-4 mx-auto mb-1" />
-                                    Traffic Allowed (Alerts: {alerts.length})
-                                </div>
-                            );
-                        } else {
-                            return (
-                                <div className="bg-green-500/10 border border-green-500/20 text-green-400 p-2 rounded text-xs text-center">
-                                    <Wifi className="w-4 h-4 mx-auto mb-1" />
-                                    Traffic Allowed
-                                </div>
-                            );
-                        }
-                    })()}
+                                <div className="text-slate-500 italic">{step.details}</div>
+                            </div>
+                        ))}
+                    </div>
                 </div>
             )}
         </div>

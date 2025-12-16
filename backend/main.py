@@ -228,31 +228,27 @@ def run_topology_simulation(req: TopologySimRequest):
 
         import topology_simulation
 
-        packets = topology_simulation.simulate_attack(
+        # Get rules (either from storage or potentially passed in request in future)
+        # For now, fetching global rules as before
+        rules = rule_addition.get_all_rules(include_disabled=False)
+
+        result = topology_simulation.simulate_attack(
             topology=topology_data,
             attacker_node=req.attacker_node,
             target_node=req.target_node,
             protocol=req.protocol,
             dst_port=req.dst_port,
-            packet_count=req.packet_count
+            packet_count=req.packet_count,
+            rules=rules  # Pass rules to engine
         )
+        
+        return result
 
         # For Topology, we might also want to accept rules in the request body later.
         # For now, we fall back to get_all_rules (which might be empty on Vercel)
         # TODO: Accept rules in TopologySimRequest
-        rules = rule_addition.get_all_rules(include_disabled=False)
-
-        detections = rule_implementation.apply_rules(packets, rules)
-
-        response = {
-            "packets": packets,
-            "detections": detections,
-            "summary": {
-                "total_packets": len(packets),
-                "total_detections": len(detections)
-            }
-        }
-        return response
+        # Result is now a detailed dictionary, return it directly
+        return result
 
     except Exception as e:
         import traceback
