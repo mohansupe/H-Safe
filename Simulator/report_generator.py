@@ -4,8 +4,9 @@
 import json
 import csv
 import textwrap
+import os
 from datetime import datetime
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
@@ -81,9 +82,10 @@ COLOR_ACCENT_RED = colors.HexColor("#ef4444")
 COLOR_ACCENT_YELLOW = colors.HexColor("#eab308")
 COLOR_ACCENT_GREEN = colors.HexColor("#22c55e")
 
-def export_pdf(report: Dict, output_path: str) -> None:
+def export_pdf(report: Dict, output_path: str, timeline: List[Dict] = []) -> None:
     """
     Export analysis report as a high-fidelity PDF with Dark Theme.
+    timeline: Full list of packets for detailed table.
     """
     c = canvas.Canvas(output_path, pagesize=A4)
     width, height = A4
@@ -92,22 +94,6 @@ def export_pdf(report: Dict, output_path: str) -> None:
     filename_display = meta.get("filename", "simulation.pcap")
     timestamp_display = meta.get("timestamp", datetime.now().strftime("%Y-%m-%d %H:%M:%S UTC"))
     report_id = meta.get("report_id", "N/A")
-
-    # Access stats from timeline for full table (passed in report usually only has abstract)
-    # The 'report' dict passed here is the analyzed summary. 
-    # To print the timeline we need the full list. 
-    # Currently the backend calls: analyze_firewall_run -> returns summary structure.
-    # The full packet timeline is not in `report` object usually. 
-    # WE MUST FIX THIS: The user wants "Traffic Analysis Timeline".
-    # Since we can't easily change the entire backend flow right now, 
-    # we will use the "top_targeted_assets" and other stats to mock the detailed rows 
-    # OR we just list the summary findings if timeline is missing.
-    # BUT wait, `analyze_pcap_endpoint` doesn't pass the simulation result to export!
-    # It passes `req.report`.
-    # `report` comes from `post_attack_analysis.analyze_firewall_run`. 
-    # It does NOT contain the full packet list string.
-    # To satisfy the user exactly, we would need the timeline.
-    # CRITICAL: For now, I will render the "Security Findings" as the table list.
     
     current_y = height
 
@@ -253,19 +239,12 @@ def export_pdf(report: Dict, output_path: str) -> None:
     c.line(100, viz_y, width - 100, viz_y)
     
     # Firewall Icon (Logo)
-    # Resolve path to logo: ../public/assets/H-Safe-Logo.png (relative to backend/Simulator)
-    # We need a robust way. Assuming we are in Simulator execution context or can find it.
-    import os
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    # Moving up from Simulator/ to root then to public/assets
     logo_path = os.path.join(current_dir, "..", "public", "assets", "H-Safe-Logo.png")
     
     if os.path.exists(logo_path):
-        # Draw Image (centered)
-        # 50x50 size
-        c.drawImage(logo_path, width/2 - 25, viz_y - 25, width=50, height=50, mask='auto')
+        c.drawImage(logo_path, width/2 - 25, viz_y - 25, width=50, height=50, mask='auto', preserveAspectRatio=True)
     else:
-        # Fallback to rectangle if logo missing
         c.setFillColor(colors.HexColor("#334155"))
         c.rect(width/2 - 25, viz_y - 25, 50, 50, fill=1, stroke=1)
     
@@ -280,78 +259,65 @@ def export_pdf(report: Dict, output_path: str) -> None:
     current_y -= 140
 
     # 5. TRAFFIC ANALYSIS TIMELINE
-    # Since we don't have the full timeline in the report dict (backend limitation),
-    # We will render the "Security Findings" in the table format requested.
     c.setFillColor(COLOR_TEXT_MAIN)
     c.setFont("Helvetica-Bold", 14)
-    c.drawString(40, current_y, "Traffic Analysis Timeline (Findings)")
+    c.drawString(40, current_y, "Traffic Analysis Timeline")
     current_y -= 20
     
-    # Table Header
-    c.setFillColor(COLOR_PANEL)
-    c.rect(40, current_y - 20, width - 80, 25, fill=1, stroke=0)
-    c.setFillColor(COLOR_TEXT_MAIN)
-    c.setFont("Helvetica-Bold", 10)
-    c.drawString(50, current_y - 15, "TYPE")
-    c.drawString(150, current_y - 15, "IDENTIFIER")
-    c.drawString(400, current_y - 15, "COUNT")
-    c.drawString(500, current_y - 15, "ACTION")
-    
-    current_y -= 25
-    
-    # Data Rows
-    findings = report.get("security_findings", {})
-    rule_hits = findings.get("rule_hit_count", {})
-    top_targets = findings.get("top_targeted_assets", [])
-    
-    # Convert dicts to consistent list for table
-    rows = []
-    for r_id, count in rule_hits.items():
-        rows.append(("RULE HIT", r_id, count, "DENY/ALERT"))
-    
-    for asset in top_targets:
-        rows.append(("TOP TARGET", asset["ip"], f"{asset['hits']} hits", "INBOUND"))
-        
-    if not rows:
-        rows.append(("INFO", "No significant events detected", "-", "ALLOW"))
+    def draw_table_header(y):
+        c.setFillColor(COLOR_PANEL)
+        c.rect(40, y - 20, width - 80, 25, fill=1, stroke=0)
+        c.setFillColor(COLOR_TEXT_MAIN)
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(50, y - 15, "TIME")
+        c.drawString(120, y - 15, "SOURCE")
+        c.drawString(240, y - 15, "DESTINATION")
+        c.drawString(380, y - 15, "PROTO")
+        c.drawString(430, y - 15, "PORT")
+        c.drawString(480, y - 15, "ACTION")
+        return y - 25
 
-    c.setFont("Helvetica", 10)
+    current_y = draw_table_header(current_y)
+    c.setFont("Helvetica", 9)
     
-    for i, (col1, col2, col3, col4) in enumerate(rows):
-        if current_y < 100:
+    # Render Timeline Rows
+    # If timeline is empty, fall back to "No data"
+    if not timeline:
+        timeline = [{"timestamp": 0, "src_ip": "-", "dst_ip": "-", "protocol": "-", "dst_port": "-", "action": "INFO (No Timeline Data)"}]
+
+    for i, packet in enumerate(timeline):
+        if current_y < 50:
             new_page()
-            # Redraw Header
-            c.setFillColor(COLOR_PANEL)
-            c.rect(40, current_y - 20, width - 80, 25, fill=1, stroke=0)
-            c.setFillColor(COLOR_TEXT_MAIN)
-            c.setFont("Helvetica-Bold", 10)
-            c.drawString(50, current_y - 15, "TYPE")
-            c.drawString(150, current_y - 15, "IDENTIFIER")
-            c.drawString(400, current_y - 15, "COUNT")
-            c.drawString(500, current_y - 15, "ACTION")
-            current_y -= 25
-            c.setFont("Helvetica", 10)
+            current_y = height - 50
+            current_y = draw_table_header(current_y)
+            c.setFont("Helvetica", 9)
 
         # Striping
         if i % 2 == 1:
-            c.setFillColor(colors.HexColor("#1e293b")) # Darker stripe
+            c.setFillColor(colors.HexColor("#1e293b")) 
             c.rect(40, current_y - 15, width - 80, 20, fill=1, stroke=0)
         
-        # Text
+        # Data
         c.setFillColor(COLOR_TEXT_SUB)
-        c.drawString(50, current_y - 10, str(col1))
+        ts_str = datetime.fromtimestamp(packet.get("timestamp", 0)).strftime("%H:%M:%S.%f")[:-3]
+        c.drawString(50, current_y - 10, ts_str)
+        
         c.setFillColor(COLOR_TEXT_MAIN)
-        c.drawString(150, current_y - 10, str(col2))
-        c.drawString(400, current_y - 10, str(col3))
+        c.drawString(120, current_y - 10, str(packet.get("src_ip", "-")))
+        c.drawString(240, current_y - 10, str(packet.get("dst_ip", "-")))
+        c.drawString(380, current_y - 10, str(packet.get("protocol", "-")))
+        c.drawString(430, current_y - 10, str(packet.get("dst_port", "-")))
         
-        # Badge Color
-        c.setFont("Helvetica-Bold", 10)
-        if "DENY" in col4: c.setFillColor(COLOR_ACCENT_RED)
-        elif "ALERT" in col4: c.setFillColor(COLOR_ACCENT_YELLOW)
+        # Action Color
+        action = packet.get("action", "ALLOW")
+        if action == "DENY": c.setFillColor(COLOR_ACCENT_RED)
+        elif action == "ALERT": c.setFillColor(COLOR_ACCENT_YELLOW)
         else: c.setFillColor(COLOR_ACCENT_GREEN)
-        c.drawString(500, current_y - 10, str(col4))
-        c.setFont("Helvetica", 10)
         
-        current_y -= 20
+        c.setFont("Helvetica-Bold", 9)
+        c.drawString(480, current_y - 10, action)
+        c.setFont("Helvetica", 9)
+        
+        current_y -= 18 # Row Height
 
     c.save()

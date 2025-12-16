@@ -299,6 +299,7 @@ export default function SimulationDashboard() {
                 },
                 body: JSON.stringify({
                     report: result.report,
+                    timeline: result.simulation.timeline,
                     format: format,
                     original_filename: file ? file.name : "simulation.pcap"
                 }),
