@@ -3,7 +3,7 @@ import os
 import sys
 import shutil
 from typing import Optional, List, Dict, Any
-from fastapi import FastAPI, HTTPException, Body, File, UploadFile
+from fastapi import FastAPI, HTTPException, Body, File, UploadFile, Form
 from fastapi.middleware.cors import CORSMiddleware
 # Add Simulator directory to sys.path
 # Assuming structure:
@@ -180,32 +180,50 @@ async def run_simulation(file: Optional[UploadFile] = File(None)):
     """
     Run full simulation:
     1. If file provided: Save it as persistent 'current.pcap' and run.
-    2. If no file: Check for 'current.pcap' and run.
+# Import Form and json
+import json
+
+@app.post("/analyze/pcap")
+async def analyze_pcap_endpoint(
+    file: Optional[UploadFile] = File(None),
+    rules_json: Optional[str] = Form(None) # Receive rules from client
+):
     """
-    target_path = PERSISTENT_PCAP_PATH
-
-    # If file uploaded, overwrite persistent file
-    if file:
-        if not file.filename.endswith(('.pcap', '.pcapng', '.cap')):
-            raise HTTPException(status_code=400, detail="Invalid file format. Please upload a .pcap file.")
-        
-        with open(target_path, "wb") as buffer:
-            shutil.copyfileobj(file.file, buffer)
-    
-    # Verify file exists (either just uploaded or previous persistent)
-    if not os.path.exists(target_path):
-        raise HTTPException(status_code=400, detail="No PCAP file provided or found on server.")
-
+    1. Receive PCAP file (optional, otherwise use persistent).
+    2. Receive Rules (optional JSON string).
+    3. Run Simulation.
+    4. Return analysis.
+    """
     try:
-        # 1. Load active rules
-        rules = rule_addition.get_all_rules(include_disabled=False)
-        
+        if file:
+            # Save uploaded file
+            with open(PERSISTENT_PCAP_PATH, "wb") as buffer:
+                shutil.copyfileobj(file.file, buffer)
+            target_path = PERSISTENT_PCAP_PATH
+        elif os.path.exists(PERSISTENT_PCAP_PATH):
+            target_path = PERSISTENT_PCAP_PATH
+        else:
+            raise HTTPException(status_code=400, detail="No PCAP file provided or found on server.")
+
+        # 1. Load Rules (Prefer client-provided, fallback to empty)
+        if rules_json:
+            try:
+                raw_rules = json.loads(rules_json)
+                # Filter enabled rules
+                rules = [r for r in raw_rules if r.get("enabled") is not False]
+            except json.JSONDecodeError:
+                rules = []
+        else:
+            # Fallback (Legacy behavior or if not provided)
+            # rules = rule_addition.get_all_rules(include_disabled=False)
+            rules = [] # Default to empty if no client rules provided
+
         # 2. Run Simulation on the persistent file
         simulation_result = pcap_analysis.simulate_pcap_flow(target_path, rules)
-        
+
         # 3. Analyze Results
         final_report = post_attack_analysis.analyze_firewall_run(simulation_result)
-        
+
         # Merge raw simulation data if needed by frontend
         response = {
             "report": final_report,

@@ -182,10 +182,17 @@ export default function SimulationDashboard() {
             formData.append('file', file);
         }
 
+        // --- NEW: Inject Local Rules into Request ---
+        const localRules = localStorage.getItem('hsafe_rules');
+        const rulesPayload = localRules ? localRules : '[]'; // Send stringified JSON
+        formData.append('rules_json', rulesPayload);
+        // --------------------------------------------
+
         try {
-            const res = await fetch(`${API_URL}/simulate`, {
+            const res = await fetch(`${API_URL}/analyze/pcap`, {
                 method: 'POST',
-                body: file ? formData : undefined // If no new file, backend uses persistent one
+                body: formData
+                // Content-Type header not set manually for FormData
             });
 
             if (!res.ok) {

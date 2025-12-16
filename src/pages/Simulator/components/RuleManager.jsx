@@ -123,87 +123,60 @@ export default function RuleManager() {
     );
     const [error, setError] = useState(null);
 
-    const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
+    const LOCAL_STORAGE_KEY = 'hsafe_rules';
 
     useEffect(() => {
-        fetchRules();
+        loadRules();
     }, []);
 
-    const fetchRules = async () => {
+    const loadRules = () => {
         setLoading(true);
         try {
-            const res = await fetch(`${API_URL}/rules?t=${Date.now()}`);
-            if (!res.ok) {
-                throw new Error(`Server returned ${res.status}`);
-            }
-            const data = await res.json();
-            if (Array.isArray(data)) {
-                setRules(data);
+            const stored = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (stored) {
+                setRules(JSON.parse(stored));
             } else {
-                console.error("Expected array of rules, got:", data);
                 setRules([]);
             }
         } catch (error) {
-            console.error("Failed to fetch rules:", error);
-            setRules([]); // Ensure it's always an array to prevent "map is not a function"
+            console.error("Failed to load rules:", error);
+            setRules([]);
         } finally {
             setLoading(false);
         }
     };
 
-    const handleDelete = async (ruleId) => {
+    const saveRulesToStorage = (newRules) => {
+        localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newRules));
+        setRules(newRules);
+    };
+
+    const handleDelete = (ruleId) => {
         if (!confirm("Are you sure you want to delete this rule?")) return;
-        try {
-            await fetch(`${API_URL}/rules/${ruleId}`, { method: 'DELETE' });
-            fetchRules();
-        } catch (error) {
-            console.error("Failed to delete rule:", error);
-        }
+        const newRules = rules.filter(r => r.rule_id !== ruleId);
+        saveRulesToStorage(newRules);
     };
 
     // New Drag End Handler
-    const handleDragEnd = async (event) => {
+    const handleDragEnd = (event) => {
         const { active, over } = event;
 
         if (active.id !== over.id) {
             setRules((items) => {
                 const oldIndex = items.findIndex((item) => item.rule_id === active.id);
                 const newIndex = items.findIndex((item) => item.rule_id === over.id);
-
-                // Optimistic Update
                 const newItems = arrayMove(items, oldIndex, newIndex);
-
-                // API Call to persist (debounced or immediate)
-                // We call the move endpoint for the moved item to the new index
-                // Note: The backend logic expects absolute index. 
-                // Since we have the new index, we can just call it.
-
-                // Fire and forget (or handle error by reverting)
-                fetch(`${API_URL}/rules/${active.id}/move`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ new_position: newIndex })
-                }).catch(err => {
-                    console.error("Failed to persist reorder:", err);
-                    fetchRules(); // Revert on error
-                });
-
+                localStorage.setItem(LOCAL_STORAGE_KEY, JSON.stringify(newItems)); // Persist order
                 return newItems;
             });
         }
     };
 
-    const handleToggle = async (ruleId, currentStatus) => {
-        try {
-            await fetch(`${API_URL}/rules/${ruleId}/status`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ enabled: !currentStatus })
-            });
-            fetchRules();
-        } catch (error) {
-            console.error("Failed to toggle rule:", error);
-        }
+    const handleToggle = (ruleId, currentStatus) => {
+        const newRules = rules.map(r =>
+            r.rule_id === ruleId ? { ...r, enabled: !currentStatus } : r
+        );
+        saveRulesToStorage(newRules);
     };
 
     const handleEdit = (rule) => {
@@ -238,7 +211,7 @@ export default function RuleManager() {
         setCreationError(null);
     };
 
-    const handleSubmit = async (e) => {
+    const handleSubmit = (e) => {
         e.preventDefault();
         setCreationError(null);
 
@@ -250,37 +223,25 @@ export default function RuleManager() {
 
         const payload = {
             ...formState,
-            conditions
+            conditions,
+            enabled: true,
+            rule_id: editingRuleId || crypto.randomUUID() // Generate ID locally
         };
 
         try {
-            let res;
+            let newRules;
             if (editingRuleId) {
                 // UPDATE
-                res = await fetch(`${API_URL}/rules/${editingRuleId}`, {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                newRules = rules.map(r => r.rule_id === editingRuleId ? { ...r, ...payload } : r);
             } else {
                 // CREATE
-                res = await fetch(`${API_URL}/rules`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
+                newRules = [...rules, payload];
             }
-
-            if (res.ok) {
-                handleCancelEdit(); // Reset form
-                fetchRules();
-            } else {
-                const err = await res.json();
-                setCreationError(err.detail || "Failed to save rule (Validation Error)");
-            }
+            saveRulesToStorage(newRules);
+            handleCancelEdit();
         } catch (error) {
             console.error("Failed to save rule:", error);
-            setCreationError("Network error occurred.");
+            setCreationError("Failed to save rule locally.");
         }
     };
 
