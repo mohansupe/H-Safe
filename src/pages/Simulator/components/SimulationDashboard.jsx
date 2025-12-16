@@ -124,7 +124,6 @@ function PacketVisualizer({ currentPacket }) {
 export default function SimulationDashboard() {
     // ... (existing state and handler logic)
     const [file, setFile] = useState(null);
-    const [persistentFile, setPersistentFile] = useState(null); // { exists: boolean, filename: string, size: number }
     const [loading, setLoading] = useState(false);
     const [result, setResult] = useState(null);
     const [error, setError] = useState(null);
@@ -137,40 +136,21 @@ export default function SimulationDashboard() {
 
     const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
 
-    // Cleanup timer on unmount and Fetch Persistent Status
+    // Cleanup timer on unmount
     useEffect(() => {
-        fetchPcapStatus();
         return () => stopPlayback();
     }, []);
 
-    const fetchPcapStatus = async () => {
-        try {
-            const res = await fetch(`${API_URL}/pcap/status?t=${Date.now()}`);
-            const data = await res.json();
-            if (data.exists) {
-                setPersistentFile(data);
-            } else {
-                setPersistentFile(null);
-            }
-        } catch (error) {
-            console.error("Failed to check PCAP status", error);
-        }
-    };
-
-    const handleRemoveFile = async () => {
-        if (!confirm("Are you sure you want to remove the stored capture?")) return;
-        try {
-            await fetch(`${API_URL}/pcap`, { method: 'DELETE' });
-            setPersistentFile(null);
-            setResult(null); // Clear results on file removal
-            setFile(null);
-        } catch (error) {
-            console.error("Failed to remove PCAP", error);
-        }
+    const handleRemoveFile = () => {
+        setFile(null);
+        setResult(null);
     };
 
     const handleRunSimulation = async () => {
-        if (!file && !persistentFile) return;
+        if (!file) {
+            alert("Please upload a PCAP file first.");
+            return;
+        }
 
         setLoading(true);
         setError(null);
@@ -202,12 +182,6 @@ export default function SimulationDashboard() {
 
             const data = await res.json();
             setResult(data);
-
-            // If we just uploaded a file, now it is persistent
-            if (file) {
-                setFile(null); // Clear input
-                fetchPcapStatus(); // Refresh status to show "Stored Capture"
-            }
 
             // Auto-start playback
             startPlayback(data.simulation.timeline);
@@ -344,48 +318,49 @@ export default function SimulationDashboard() {
             {/* Control Panel */}
             <div className="bg-slate-800 p-8 rounded-xl border border-slate-700 text-center">
 
-                {!persistentFile ? (
-                    <div className="mb-6">
-                        <label className="block text-slate-300 font-bold mb-2">Upload Network Capture (PCAP)</label>
-                        <input
-                            type="file"
-                            accept=".pcap,.pcapng,.cap"
-                            onChange={e => setFile(e.target.files[0])}
-                            className="block w-full text-slate-400
+                {file ? (
+                    <div className="mb-6 bg-slate-900/50 p-6 rounded-lg border border-slate-600">
+                        <div className="flex items-center justify-between">
+                            <div className="text-left">
+                                <h4 className="text-sm font-bold text-green-400 mb-1 flex items-center gap-2">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                    File Selected
+                                </h4>
+                                <p className="font-mono text-sm text-slate-300">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>
+                            </div>
+                            <button
+                                onClick={() => setFile(null)} // Allow clearing selected file
+                                className="text-red-400 hover:text-red-300 text-sm font-bold border border-red-500/30 bg-red-500/10 px-4 py-2 rounded hover:bg-red-500/20 transition-colors"
+                            >
+                                Clear Selection
+                            </button>
+                        </div>
+                    </div>
+                ) : (
+                    <div className="mb-6 bg-slate-900/50 p-6 rounded-lg border border-slate-600">
+                        <h4 className="text-sm font-bold text-slate-400 mb-1">No Capture Loaded</h4>
+                        <p className="text-xs text-slate-500">Upload a .pcap file to begin simulation</p>
+                    </div>
+                )}
+                <label className="block text-slate-300 font-bold mb-2">Upload Network Capture (PCAP)</label>
+                <input
+                    type="file"
+                    accept=".pcap,.pcapng,.cap"
+                    onChange={e => setFile(e.target.files[0])}
+                    className="block w-full text-slate-400
                             file:mr-4 file:py-3 file:px-6
                             file:rounded-full file:border-0
                             file:text-sm file:font-bold
                             file:bg-blue-600 file:text-white
                             hover:file:bg-blue-500 cursor-pointer"
-                        />
-                    </div>
-                ) : (
-                    <div className="mb-6 bg-slate-900/50 p-6 rounded-lg border border-slate-600">
-                        <div className="flex items-center justify-between">
-                            <div className="text-left">
-                                <h4 className="text-green-400 font-bold flex items-center gap-2">
-                                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
-                                    Active Capture Loaded
-                                </h4>
-                                <p className="text-slate-400 text-sm mt-1 font-mono">
-                                    {persistentFile.filename} ({(persistentFile.size / 1024 / 1024).toFixed(2)} MB)
-                                </p>
-                            </div>
-                            <button
-                                onClick={handleRemoveFile}
-                                className="text-red-400 hover:text-red-300 text-sm font-bold border border-red-500/30 bg-red-500/10 px-4 py-2 rounded hover:bg-red-500/20 transition-colors"
-                            >
-                                Remove File
-                            </button>
-                        </div>
-                    </div>
-                )}
+                />
 
-                <div className="flex gap-4">
+
+                <div className="flex gap-4 mt-6">
                     <button
                         onClick={handleRunSimulation}
-                        disabled={(!file && !persistentFile) || loading}
-                        className={`flex-1 py-4 rounded-xl font-bold text-lg text-white transition-all ${(!file && !persistentFile) || loading
+                        disabled={!file || loading}
+                        className={`flex-1 py-4 rounded-xl font-bold text-lg text-white transition-all ${!file || loading
                             ? 'bg-slate-700 cursor-not-allowed text-slate-500'
                             : 'bg-green-600 hover:bg-green-500 shadow-lg hover:shadow-green-500/20'
                             }`}
