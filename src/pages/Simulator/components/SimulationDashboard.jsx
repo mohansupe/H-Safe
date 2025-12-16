@@ -299,7 +299,8 @@ export default function SimulationDashboard() {
                 },
                 body: JSON.stringify({
                     report: result.report,
-                    format: format
+                    format: format,
+                    original_filename: file ? file.name : "simulation.pcap"
                 }),
             });
 

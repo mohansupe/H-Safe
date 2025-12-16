@@ -60,6 +60,7 @@ class TopologySimRequest(BaseModel):
 class ExportRequest(BaseModel):
     report: dict
     format: str
+    original_filename: Optional[str] = "simulation"
 
 # =========================
 # ENDPOINTS
@@ -264,9 +265,30 @@ def export_report_endpoint(req: ExportRequest):
     """
     try:
         import report_generator
+        from datetime import datetime
+        import uuid
         
-        filename = f"report_{int(time.time())}.{req.format}"
+        # Format: {original_filename}{ssmmhhDDMMYYYY}.{format}
+        # ss = Second, mm = Minute, hh = Hour, DD = Base, MM = Month, YYYY = Year
+        now = datetime.now()
+        timestamp_str = now.strftime("%S%M%H%d%m%Y")
+        
+        # Sanitize filename
+        base_name = os.path.splitext(req.original_filename)[0]
+        base_name = "".join(c for c in base_name if c.isalnum() or c in (' ', '-', '_')).strip()
+        if not base_name: base_name = "simulation"
+        
+        filename = f"{base_name}{timestamp_str}.{req.format}"
         output_path = os.path.join(UPLOAD_DIR, filename)
+        
+        report_id = str(uuid.uuid4())
+        
+        # Inject metadata into report for the generator to use
+        req.report["meta"] = {
+            "filename": req.original_filename,
+            "timestamp": now.strftime("%Y-%m-%d %H:%M:%S UTC"),
+            "report_id": report_id
+        }
         
         if req.format.lower() == "pdf":
             report_generator.export_pdf(req.report, output_path)
