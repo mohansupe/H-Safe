@@ -13,6 +13,7 @@ import {
     Upload,
     AlertCircle
 } from 'lucide-react';
+import { savePCAP, getPCAP, deletePCAP } from '../../../utils/storage';
 
 // Internal Component for Visualizing Packet Flow
 function PacketVisualizer({ currentPacket }) {
@@ -136,14 +137,33 @@ export default function SimulationDashboard() {
 
     const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
 
+    // Load persisted PCAP on mount
+    useEffect(() => {
+        const loadPersistedFile = async () => {
+            const storedFile = await getPCAP();
+            if (storedFile) {
+                setFile(storedFile);
+            }
+        };
+        loadPersistedFile();
+    }, []);
+
     // Cleanup timer on unmount
     useEffect(() => {
         return () => stopPlayback();
     }, []);
 
-    const handleRemoveFile = () => {
+    const handleFileSelect = async (selectedFile) => {
+        if (selectedFile) {
+            setFile(selectedFile);
+            await savePCAP(selectedFile);
+        }
+    };
+
+    const handleRemoveFile = async () => {
         setFile(null);
         setResult(null);
+        await deletePCAP();
     };
 
     const handleRunSimulation = async () => {
@@ -329,7 +349,7 @@ export default function SimulationDashboard() {
                                 <p className="font-mono text-sm text-slate-300">{file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)</p>
                             </div>
                             <button
-                                onClick={() => setFile(null)} // Allow clearing selected file
+                                onClick={handleRemoveFile} // Allow clearing selected file
                                 className="text-red-400 hover:text-red-300 text-sm font-bold border border-red-500/30 bg-red-500/10 px-4 py-2 rounded hover:bg-red-500/20 transition-colors"
                             >
                                 Clear Selection
@@ -342,18 +362,19 @@ export default function SimulationDashboard() {
                         <p className="text-xs text-slate-500">Upload a .pcap file to begin simulation</p>
                     </div>
                 )}
-                <label className="block text-slate-300 font-bold mb-2">Upload Network Capture (PCAP)</label>
-                <input
-                    type="file"
-                    accept=".pcap,.pcapng,.cap"
-                    onChange={e => setFile(e.target.files[0])}
-                    className="block w-full text-slate-400
+                <label className="block text-slate-300 font-bold mb-2">Upload Network Capture
+                    <input
+                        type="file"
+                        accept=".pcap,.pcapng,.cap"
+                        onChange={e => handleFileSelect(e.target.files[0])}
+                        className="block w-full text-slate-400
                             file:mr-4 file:py-3 file:px-6
                             file:rounded-full file:border-0
                             file:text-sm file:font-bold
                             file:bg-blue-600 file:text-white
                             hover:file:bg-blue-500 cursor-pointer"
-                />
+                    />
+                </label>
 
 
                 <div className="flex gap-4 mt-6">
