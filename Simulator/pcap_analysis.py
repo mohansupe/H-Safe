@@ -140,7 +140,8 @@ def simulate_pcap_flow(
             "allow": action_count["ALLOW"],
             "deny": action_count["DENY"],
             "alert": action_count["ALERT"],
-            "speed_factor": speed
+            "speed_factor": speed,
+            "duration": (packets[-1]["timestamp"] - packets[0]["timestamp"]) if len(packets) > 1 else 0.0
         },
         "timeline": timeline,
         "detections": detections

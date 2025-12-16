@@ -198,6 +198,13 @@ def export_pdf(report: Dict, output_path: str) -> None:
     c.setFillColor(COLOR_TEXT_MAIN)
     c.setFont("Helvetica-Bold", 14)
     c.drawString(40, current_y, "Engine Assessment")
+    
+    # Add Duration info here
+    c.setFillColor(COLOR_TEXT_SUB)
+    c.setFont("Helvetica", 10)
+    duration = vals.get("duration_seconds", 0)
+    c.drawRightString(width - 40, current_y, f"Scan Duration: {duration}s")
+    
     current_y -= 15
     
     # Text Panel
@@ -245,9 +252,22 @@ def export_pdf(report: Dict, output_path: str) -> None:
     c.setLineWidth(2)
     c.line(100, viz_y, width - 100, viz_y)
     
-    # Firewall Icon (Rectangle)
-    c.setFillColor(colors.HexColor("#334155"))
-    c.rect(width/2 - 25, viz_y - 25, 50, 50, fill=1, stroke=1)
+    # Firewall Icon (Logo)
+    # Resolve path to logo: ../public/assets/H-Safe-Logo.png (relative to backend/Simulator)
+    # We need a robust way. Assuming we are in Simulator execution context or can find it.
+    import os
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Moving up from Simulator/ to root then to public/assets
+    logo_path = os.path.join(current_dir, "..", "public", "assets", "H-Safe-Logo.png")
+    
+    if os.path.exists(logo_path):
+        # Draw Image (centered)
+        # 50x50 size
+        c.drawImage(logo_path, width/2 - 25, viz_y - 25, width=50, height=50, mask='auto')
+    else:
+        # Fallback to rectangle if logo missing
+        c.setFillColor(colors.HexColor("#334155"))
+        c.rect(width/2 - 25, viz_y - 25, 50, 50, fill=1, stroke=1)
     
     # Labels
     c.setFillColor(COLOR_TEXT_SUB)

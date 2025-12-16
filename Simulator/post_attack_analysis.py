@@ -93,8 +93,14 @@ def analyze_firewall_run(simulation_result: Dict) -> Dict:
         "overview": {
             "total_packets": simulation_result["summary"]["total_packets"],
             "allowed": action_counts.get("ALLOW", 0),
-            "denied": action_counts.get("DENY", 0),
-            "alerted": action_counts.get("ALERT", 0),
+            "denied": action_counts.get("DENY", 0),  # Matches "blocked_packets" concept
+            "alerted": action_counts.get("ALERT", 0), # Matches "total_alerts" concept
+            
+            # Legacy/Alias keys for Report Generator compatibility
+            "blocked_packets": action_counts.get("DENY", 0),
+            "total_alerts": action_counts.get("ALERT", 0),
+            
+            "duration_seconds": round(simulation_result["summary"].get("duration", 0), 2),
             "highest_severity": _max_severity(list(severity_hits.keys()))
         },
         "traffic_profile": {
