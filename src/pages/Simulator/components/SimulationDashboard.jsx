@@ -135,7 +135,7 @@ export default function SimulationDashboard() {
     const [playbackStatus, setPlaybackStatus] = useState('IDLE'); // IDLE, PLAYING, PAUSED, FINISHED
     const playbackTimerRef = React.useRef(null);
 
-    const API_URL = 'http://localhost:8000';
+    const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
 
     // Cleanup timer on unmount and Fetch Persistent Status
     useEffect(() => {

@@ -420,318 +420,323 @@ function TopologyBuilderContent() {
     const [selectedNodeId, setSelectedNodeId] = useState(null);
     const [existingRules, setExistingRules] = useState([]);
     const [simulationResult, setSimulationResult] = useState(null);
-    const [isSimulating, setIsSimulating] = useState(false);
 
-    // Persist changes
-    React.useEffect(() => {
-        if (nodes.length > 0) {
+    const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
+
+    const handleAddNode = (type) => {
+        useState(false);
+        const [isSimulating, setIsSimulating] = useState(false);
+
+        // Persist changes
+        React.useEffect(() => {
+            if (nodes.length > 0) {
+                localStorage.setItem(KEY_NODES, JSON.stringify(nodes));
+            }
+            // If nodes empty, maybe user cleared it? or it initialized empty. 
+            // We handle explicit clear separately. 
+            // But if user deletes all nodes manually, we should save empty array.
+            // Let's rely on handleClear for "Reset to default" or just save whatever is there.
+            // Actually, if we save [], next load will be empty. 
+            // That's fine.
             localStorage.setItem(KEY_NODES, JSON.stringify(nodes));
-        }
-        // If nodes empty, maybe user cleared it? or it initialized empty. 
-        // We handle explicit clear separately. 
-        // But if user deletes all nodes manually, we should save empty array.
-        // Let's rely on handleClear for "Reset to default" or just save whatever is there.
-        // Actually, if we save [], next load will be empty. 
-        // That's fine.
-        localStorage.setItem(KEY_NODES, JSON.stringify(nodes));
-    }, [nodes]);
+        }, [nodes]);
 
-    React.useEffect(() => {
-        localStorage.setItem(KEY_EDGES, JSON.stringify(edges));
-    }, [edges]);
+        React.useEffect(() => {
+            localStorage.setItem(KEY_EDGES, JSON.stringify(edges));
+        }, [edges]);
 
-    React.useEffect(() => {
-        const fetchRules = async () => {
-            try {
-                const response = await fetch(`${API_URL}/rules?t=${Date.now()}`);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setExistingRules(data);
+        React.useEffect(() => {
+            const fetchRules = async () => {
+                try {
+                    const response = await fetch(`${API_URL}/rules?t=${Date.now()}`);
+                    const data = await response.json();
+                    if (Array.isArray(data)) {
+                        setExistingRules(data);
+                    }
+                } catch (error) {
+                    console.error("Failed to fetch rules:", error);
                 }
-            } catch (error) {
-                console.error("Failed to fetch rules:", error);
-            }
-        };
-        fetchRules();
-    }, []);
+            };
+            fetchRules();
+        }, []);
 
-    const onConnect = useCallback(
-        (params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#fff', strokeWidth: 2 } }, eds)),
-        [],
-    );
+        const onConnect = useCallback(
+            (params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#fff', strokeWidth: 2 } }, eds)),
+            [],
+        );
 
-    const onDragOver = useCallback((event) => {
-        event.preventDefault();
-        event.dataTransfer.dropEffect = 'move';
-    }, []);
-
-    const onDrop = useCallback(
-        (event) => {
+        const onDragOver = useCallback((event) => {
             event.preventDefault();
+            event.dataTransfer.dropEffect = 'move';
+        }, []);
 
-            const type = event.dataTransfer.getData('application/reactflow');
-            const label = event.dataTransfer.getData('application/reactflow-label');
+        const onDrop = useCallback(
+            (event) => {
+                event.preventDefault();
 
-            if (typeof type === 'undefined' || !type) {
-                return;
-            }
+                const type = event.dataTransfer.getData('application/reactflow');
+                const label = event.dataTransfer.getData('application/reactflow-label');
 
-            const position = reactFlowInstance.screenToFlowPosition({
-                x: event.clientX,
-                y: event.clientY,
+                if (typeof type === 'undefined' || !type) {
+                    return;
+                }
+
+                const position = reactFlowInstance.screenToFlowPosition({
+                    x: event.clientX,
+                    y: event.clientY,
+                });
+
+                const newNode = {
+                    id: getId(),
+                    type,
+                    position,
+                    data: { label: `${label}`, ip: '' }, // Ensure IP field exists
+                };
+
+                setNodes((nds) => nds.concat(newNode));
+            },
+            [reactFlowInstance],
+        );
+
+        // Node Selection
+        const onNodeClick = useCallback((event, node) => {
+            setSelectedNodeId(node.id);
+        }, []);
+
+        const onPaneClick = useCallback(() => {
+            setSelectedNodeId(null);
+        }, []);
+
+        // Update Node Data
+        const updateNodeData = (nodeId, newData) => {
+            setNodes((nds) =>
+                nds.map((node) => {
+                    if (node.id === nodeId) {
+                        return { ...node, data: { ...node.data, ...newData } };
+                    }
+                    return node;
+                })
+            );
+        };
+
+        const selectedNode = nodes.find(n => n.id === selectedNodeId);
+
+        // --- Graph Traversal and Simulation Logic ---
+
+        // BFS to find all paths between src and dst
+        const findAllPaths = (sourceId, targetId, edges) => {
+            const adj = {};
+            edges.forEach(e => {
+                if (!adj[e.source]) adj[e.source] = [];
+                if (!adj[e.target]) adj[e.target] = [];
+                adj[e.source].push(e.target);
+                adj[e.target].push(e.source); // Assuming undirected links for simplicity in BFS
             });
 
-            const newNode = {
-                id: getId(),
-                type,
-                position,
-                data: { label: `${label}`, ip: '' }, // Ensure IP field exists
-            };
+            const paths = [];
+            const queue = [[sourceId]];
 
-            setNodes((nds) => nds.concat(newNode));
-        },
-        [reactFlowInstance],
-    );
+            while (queue.length > 0) {
+                const path = queue.shift();
+                const node = path[path.length - 1];
 
-    // Node Selection
-    const onNodeClick = useCallback((event, node) => {
-        setSelectedNodeId(node.id);
-    }, []);
-
-    const onPaneClick = useCallback(() => {
-        setSelectedNodeId(null);
-    }, []);
-
-    // Update Node Data
-    const updateNodeData = (nodeId, newData) => {
-        setNodes((nds) =>
-            nds.map((node) => {
-                if (node.id === nodeId) {
-                    return { ...node, data: { ...node.data, ...newData } };
+                if (node === targetId) {
+                    // Convert path of IDs into list of edges (src, dst)
+                    const edgePath = [];
+                    for (let i = 0; i < path.length - 1; i++) {
+                        edgePath.push([path[i], path[i + 1]]);
+                        // Also add reverse for undirected consistency if backend needs check both ways
+                        edgePath.push([path[i + 1], path[i]]);
+                    }
+                    paths.push(edgePath);
+                    continue; // Continue finding other paths? Simple BFS usually finds shortest. 
+                    // For complex topology with loops, we need visited checks.
                 }
-                return node;
-            })
-        );
-    };
 
-    const selectedNode = nodes.find(n => n.id === selectedNodeId);
-
-    // --- Graph Traversal and Simulation Logic ---
-
-    // BFS to find all paths between src and dst
-    const findAllPaths = (sourceId, targetId, edges) => {
-        const adj = {};
-        edges.forEach(e => {
-            if (!adj[e.source]) adj[e.source] = [];
-            if (!adj[e.target]) adj[e.target] = [];
-            adj[e.source].push(e.target);
-            adj[e.target].push(e.source); // Assuming undirected links for simplicity in BFS
-        });
-
-        const paths = [];
-        const queue = [[sourceId]];
-
-        while (queue.length > 0) {
-            const path = queue.shift();
-            const node = path[path.length - 1];
-
-            if (node === targetId) {
-                // Convert path of IDs into list of edges (src, dst)
-                const edgePath = [];
-                for (let i = 0; i < path.length - 1; i++) {
-                    edgePath.push([path[i], path[i + 1]]);
-                    // Also add reverse for undirected consistency if backend needs check both ways
-                    edgePath.push([path[i + 1], path[i]]);
-                }
-                paths.push(edgePath);
-                continue; // Continue finding other paths? Simple BFS usually finds shortest. 
-                // For complex topology with loops, we need visited checks.
-            }
-
-            // Simplistic BFS for quick implementation
-            if (adj[node]) {
-                for (const neighbor of adj[node]) {
-                    if (!path.includes(neighbor)) {
-                        queue.push([...path, neighbor]);
+                // Simplistic BFS for quick implementation
+                if (adj[node]) {
+                    for (const neighbor of adj[node]) {
+                        if (!path.includes(neighbor)) {
+                            queue.push([...path, neighbor]);
+                        }
                     }
                 }
             }
-        }
 
-        // Flatten list of lists of edges? 
-        // Logic requires List of (src, dst).
-        // If multiple paths exist, we should probably output all segments involved in valid paths.
-        // Let's just collect ALL connected edges for now, or use the single path found.
-        if (paths.length > 0) {
-            return paths[0]; // Return the first (shortest) path segments
-        }
-        return [];
-    };
+            // Flatten list of lists of edges? 
+            // Logic requires List of (src, dst).
+            // If multiple paths exist, we should probably output all segments involved in valid paths.
+            // Let's just collect ALL connected edges for now, or use the single path found.
+            if (paths.length > 0) {
+                return paths[0]; // Return the first (shortest) path segments
+            }
+            return [];
+        };
 
-    const handleRunSimulation = async (config) => {
-        setIsSimulating(true);
-        setSimulationResult(null);
+        const handleRunSimulation = async (config) => {
+            setIsSimulating(true);
+            setSimulationResult(null);
 
-        try {
-            // 1. Construct Topology
-            const topologyNodes = {};
-            nodes.forEach(n => {
-                // Determine node name/id. Backend expects `nodes` dict.
-                // We'll use the ID as the key, and provide 'ip'.
-                // If IP is missing, auto-assign one for simulation to work?
-                // Let's use the ID as the reference name in the graph.
-                topologyNodes[n.id] = {
-                    ip: n.data.ip || `10.0.0.${n.id.replace(/\D/g, '') || 1}`, // Fallback IP
-                    type: n.type
+            try {
+                // 1. Construct Topology
+                const topologyNodes = {};
+                nodes.forEach(n => {
+                    // Determine node name/id. Backend expects `nodes` dict.
+                    // We'll use the ID as the key, and provide 'ip'.
+                    // If IP is missing, auto-assign one for simulation to work?
+                    // Let's use the ID as the reference name in the graph.
+                    topologyNodes[n.id] = {
+                        ip: n.data.ip || `10.0.0.${n.id.replace(/\D/g, '') || 1}`, // Fallback IP
+                        type: n.type
+                    };
+
+                    // If it's the firewall, map it specifically? 
+                    // The backend checks for a node named "firewall"!!! 
+                    // RE-READING backend code: `if "firewall" in topology["nodes"]`.
+                    // So one node MUST be named "firewall" (key in dict) for logic to enforce firewall traversal.
+                    // We need to map our H-Safe node ID to "firewall".
+                });
+
+                // Find H-Safe node to rename key to 'firewall'
+                const hSafeNode = nodes.find(n => n.type === 'firewall');
+                if (hSafeNode) {
+                    const originalId = hSafeNode.id;
+                    // Create alias in topology
+                    topologyNodes['firewall'] = topologyNodes[originalId];
+
+                    // Note: We need to handle edges. If edge connected to originalId, 
+                    // we must report it as connected to 'firewall'.
+                }
+
+                // Construct Paths
+                // Backend expects `paths` as list of (src, dst).
+                // We'll traverse the graph or just dump all edges?
+                // `_path_exists` checks `(src, dst) in paths`.
+                // So we need to provide all direct links as tuples.
+                // AND we need to handle the ID mapping for firewall.
+
+                const paths = [];
+                edges.forEach(e => {
+                    let src = e.source;
+                    let dst = e.target;
+
+                    // Map to 'firewall' key if applicable
+                    if (hSafeNode && src === hSafeNode.id) src = 'firewall';
+                    if (hSafeNode && dst === hSafeNode.id) dst = 'firewall';
+
+                    paths.push([src, dst]);
+                    paths.push([dst, src]); // Bi-directional
+                });
+
+                // Map attacker/target IDs
+                let attacker = config.attackerId;
+                let target = config.targetId;
+                if (hSafeNode && attacker === hSafeNode.id) attacker = 'firewall';
+                if (hSafeNode && target === hSafeNode.id) target = 'firewall';
+
+                const payload = {
+                    topology: {
+                        nodes: topologyNodes,
+                        paths: paths
+                    },
+                    attacker_node: attacker,
+                    target_node: target,
+                    protocol: config.protocol,
+                    dst_port: config.port
                 };
 
-                // If it's the firewall, map it specifically? 
-                // The backend checks for a node named "firewall"!!! 
-                // RE-READING backend code: `if "firewall" in topology["nodes"]`.
-                // So one node MUST be named "firewall" (key in dict) for logic to enforce firewall traversal.
-                // We need to map our H-Safe node ID to "firewall".
-            });
+                const response = await fetch(`${API_URL}/simulate/topology`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
 
-            // Find H-Safe node to rename key to 'firewall'
-            const hSafeNode = nodes.find(n => n.type === 'firewall');
-            if (hSafeNode) {
-                const originalId = hSafeNode.id;
-                // Create alias in topology
-                topologyNodes['firewall'] = topologyNodes[originalId];
+                if (!response.ok) {
+                    const err = await response.json();
+                    throw new Error(err.detail || 'Simulation failed');
+                }
 
-                // Note: We need to handle edges. If edge connected to originalId, 
-                // we must report it as connected to 'firewall'.
+                const result = await response.json();
+                setSimulationResult(result);
+
+            } catch (error) {
+                console.error("Simulation error:", error);
+                alert("Simulation Failed: " + error.message);
+            } finally {
+                setIsSimulating(false);
             }
+        };
 
-            // Construct Paths
-            // Backend expects `paths` as list of (src, dst).
-            // We'll traverse the graph or just dump all edges?
-            // `_path_exists` checks `(src, dst) in paths`.
-            // So we need to provide all direct links as tuples.
-            // AND we need to handle the ID mapping for firewall.
-
-            const paths = [];
-            edges.forEach(e => {
-                let src = e.source;
-                let dst = e.target;
-
-                // Map to 'firewall' key if applicable
-                if (hSafeNode && src === hSafeNode.id) src = 'firewall';
-                if (hSafeNode && dst === hSafeNode.id) dst = 'firewall';
-
-                paths.push([src, dst]);
-                paths.push([dst, src]); // Bi-directional
-            });
-
-            // Map attacker/target IDs
-            let attacker = config.attackerId;
-            let target = config.targetId;
-            if (hSafeNode && attacker === hSafeNode.id) attacker = 'firewall';
-            if (hSafeNode && target === hSafeNode.id) target = 'firewall';
-
-            const payload = {
-                topology: {
-                    nodes: topologyNodes,
-                    paths: paths
-                },
-                attacker_node: attacker,
-                target_node: target,
-                protocol: config.protocol,
-                dst_port: config.port
-            };
-
-            const response = await fetch(`${API_URL}/simulate/topology`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            });
-
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.detail || 'Simulation failed');
+        const handleClear = () => {
+            if (window.confirm("Are you sure you want to clear the entire topology? This cannot be undone.")) {
+                setNodes(initialNodes);
+                setEdges([]);
+                localStorage.removeItem(KEY_NODES);
+                localStorage.removeItem(KEY_EDGES);
             }
+        };
 
-            const result = await response.json();
-            setSimulationResult(result);
-
-        } catch (error) {
-            console.error("Simulation error:", error);
-            alert("Simulation Failed: " + error.message);
-        } finally {
-            setIsSimulating(false);
-        }
-    };
-
-    const handleClear = () => {
-        if (window.confirm("Are you sure you want to clear the entire topology? This cannot be undone.")) {
-            setNodes(initialNodes);
-            setEdges([]);
-            localStorage.removeItem(KEY_NODES);
-            localStorage.removeItem(KEY_EDGES);
-        }
-    };
-
-    return (
-        <div className="flex h-[800px] border border-slate-700 rounded-xl overflow-hidden bg-slate-950 relative">
-            <Sidebar />
-            <div className="flex-grow h-full relative" ref={reactFlowWrapper}>
-                <div className="absolute top-4 right-4 z-10">
-                    <button
-                        onClick={handleClear}
-                        className="px-3 py-1 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded flex items-center gap-2 transition-colors"
-                    >
-                        <Trash2 className="w-4 h-4" />
-                        Clear Topology
-                    </button>
-                </div>
-                <ReactFlow
-                    nodes={nodes}
-                    edges={edges}
-                    onNodesChange={onNodesChange}
-                    onEdgesChange={onEdgesChange}
-                    onConnect={onConnect}
-                    onInit={setReactFlowInstance}
-                    onDrop={onDrop}
-                    onDragOver={onDragOver}
-                    onNodeClick={onNodeClick}
-                    onPaneClick={onPaneClick}
-                    nodeTypes={nodeTypes}
-                    proOptions={{ hideAttribution: true }}
-                    fitView
-                >
-                    <Controls className="bg-slate-800 border border-slate-700 text-white fill-white" />
-                    <Background color="#334155" gap={16} />
-                    <MiniMap
-                        nodeColor="#64748b"
-                        maskColor="rgba(15, 23, 42, 0.7)"
-                        className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden"
-                    />
-                    <SimulationPanel
+        return (
+            <div className="flex h-[800px] border border-slate-700 rounded-xl overflow-hidden bg-slate-950 relative">
+                <Sidebar />
+                <div className="flex-grow h-full relative" ref={reactFlowWrapper}>
+                    <div className="absolute top-4 right-4 z-10">
+                        <button
+                            onClick={handleClear}
+                            className="px-3 py-1 bg-red-500/10 border border-red-500/30 hover:bg-red-500/20 text-red-400 text-xs font-bold rounded flex items-center gap-2 transition-colors"
+                        >
+                            <Trash2 className="w-4 h-4" />
+                            Clear Topology
+                        </button>
+                    </div>
+                    <ReactFlow
                         nodes={nodes}
-                        onRunSimulation={handleRunSimulation}
-                        simulationResult={simulationResult}
-                        isSimulating={isSimulating}
-                    />
-                </ReactFlow>
+                        edges={edges}
+                        onNodesChange={onNodesChange}
+                        onEdgesChange={onEdgesChange}
+                        onConnect={onConnect}
+                        onInit={setReactFlowInstance}
+                        onDrop={onDrop}
+                        onDragOver={onDragOver}
+                        onNodeClick={onNodeClick}
+                        onPaneClick={onPaneClick}
+                        nodeTypes={nodeTypes}
+                        proOptions={{ hideAttribution: true }}
+                        fitView
+                    >
+                        <Controls className="bg-slate-800 border border-slate-700 text-white fill-white" />
+                        <Background color="#334155" gap={16} />
+                        <MiniMap
+                            nodeColor="#64748b"
+                            maskColor="rgba(15, 23, 42, 0.7)"
+                            className="bg-slate-900 border border-slate-700 rounded-lg overflow-hidden"
+                        />
+                        <SimulationPanel
+                            nodes={nodes}
+                            onRunSimulation={handleRunSimulation}
+                            simulationResult={simulationResult}
+                            isSimulating={isSimulating}
+                        />
+                    </ReactFlow>
+                </div>
+                <PropertiesPanel selectedNode={selectedNode} updateNodeData={updateNodeData} existingRules={existingRules} />
             </div>
-            <PropertiesPanel selectedNode={selectedNode} updateNodeData={updateNodeData} existingRules={existingRules} />
-        </div>
-    );
-}
+        );
+    }
 
-export default function TopologyBuilder() {
-    return (
-        <div className="space-y-4">
-            <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
-                <h2 className="text-2xl font-bold text-white mb-2">Network Topology Builder</h2>
-                <p className="text-slate-400">
-                    Design custom network architectures by dragging components onto the canvas.
-                    Select a node to configure its IP address, role, and security policies.
-                </p>
+    export default function TopologyBuilder() {
+        return (
+            <div className="space-y-4">
+                <div className="bg-slate-800 p-6 rounded-xl border border-slate-700 mb-6">
+                    <h2 className="text-2xl font-bold text-white mb-2">Network Topology Builder</h2>
+                    <p className="text-slate-400">
+                        Design custom network architectures by dragging components onto the canvas.
+                        Select a node to configure its IP address, role, and security policies.
+                    </p>
+                </div>
+                <ReactFlowProvider>
+                    <TopologyBuilderContent />
+                </ReactFlowProvider>
             </div>
-            <ReactFlowProvider>
-                <TopologyBuilderContent />
-            </ReactFlowProvider>
-        </div>
-    );
-}
+        );
+    }

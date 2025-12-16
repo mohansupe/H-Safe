@@ -1,0 +1,6 @@
+fastapi
+uvicorn
+pydantic
+reportlab
+python-multipart
+# Add other dependencies if needed (e.g. scapy if pcap_analysis uses it)

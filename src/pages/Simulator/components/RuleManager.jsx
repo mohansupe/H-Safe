@@ -121,8 +121,9 @@ export default function RuleManager() {
             coordinateGetter: sortableKeyboardCoordinates,
         })
     );
+    const [error, setError] = useState(null);
 
-    const API_URL = 'http://localhost:8000';
+    const API_URL = import.meta.env.PROD ? '/api' : 'http://localhost:8000';
 
     useEffect(() => {
         fetchRules();
