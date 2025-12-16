@@ -65,59 +65,7 @@ class ExportRequest(BaseModel):
 
 # ... (rest of file) ...
 
-@app.post("/report/export")
-def export_report_endpoint(req: ExportRequest):
-    """
-    Export simulation report to specified format.
-    """
-    try:
-        import report_generator
-        from datetime import datetime
-        import uuid
-        
-        # Format: {original_filename}{ssmmhhDDMMYYYY}.{format}
-        # ss = Second, mm = Minute, hh = Hour, DD = Base, MM = Month, YYYY = Year
-        now = datetime.now()
-        timestamp_str = now.strftime("%S%M%H%d%m%Y")
-        
-        # Sanitize filename
-        base_name = os.path.splitext(req.original_filename)[0]
-        base_name = "".join(c for c in base_name if c.isalnum() or c in (' ', '-', '_')).strip()
-        if not base_name: base_name = "simulation"
-        
-        filename = f"{base_name}{timestamp_str}.{req.format}"
-        output_path = os.path.join(UPLOAD_DIR, filename)
-        
-        report_id = str(uuid.uuid4())
-        
-        # Inject metadata into report for the generator to use
-        req.report["meta"] = {
-            "filename": req.original_filename,
-            "timestamp": now.strftime("%Y-%m-%d %H:%M:%S UTC"),
-            "report_id": report_id
-        }
-        
-        if req.format.lower() == "pdf":
-            # Pass timeline to PDF generator
-            report_generator.export_pdf(req.report, output_path, req.timeline)
-            media_type = "application/pdf"
-        elif req.format.lower() == "csv":
-            report_generator.export_csv(req.report, output_path)
-            media_type = "text/csv"
-        elif req.format.lower() == "json":
-            report_generator.export_json(req.report, output_path)
-            media_type = "application/json"
-        else:
-            raise HTTPException(status_code=400, detail="Unsupported format. Use pdf, csv, or json.")
-            
-        if not os.path.exists(output_path):
-             raise HTTPException(status_code=500, detail="Failed to generate report file.")
 
-        return FileResponse(
-            path=output_path, 
-            filename=filename, 
-            media_type=media_type
-        )
 
 # =========================
 # ENDPOINTS
@@ -348,7 +296,7 @@ def export_report_endpoint(req: ExportRequest):
         }
         
         if req.format.lower() == "pdf":
-            report_generator.export_pdf(req.report, output_path)
+            report_generator.export_pdf(req.report, output_path, req.timeline)
             media_type = "application/pdf"
         elif req.format.lower() == "csv":
             report_generator.export_csv(req.report, output_path)

@@ -179,7 +179,16 @@ export default function SimulationDashboard() {
 
         const formData = new FormData();
         if (file) {
-            formData.append('file', file);
+            // Fix for Safari/IndexedDB: Re-create File object to ensure valid Blob reference
+            // Safari sometimes throws "The string did not match the expected pattern" with IDB files
+            try {
+                const safeFile = new File([file], file.name, { type: file.type || 'application/vnd.tcpdump.pcap' });
+                formData.append('file', safeFile);
+                console.log("Attached safe file:", safeFile.name, safeFile.size);
+            } catch (e) {
+                console.warn("Failed to recreate file, using original:", e);
+                formData.append('file', file);
+            }
         }
 
         // --- NEW: Inject Local Rules into Request ---
@@ -189,6 +198,7 @@ export default function SimulationDashboard() {
         // --------------------------------------------
 
         try {
+            console.log("Sending analysis request...");
             const res = await fetch(`${API_URL}/analyze/pcap`, {
                 method: 'POST',
                 body: formData
@@ -197,6 +207,7 @@ export default function SimulationDashboard() {
 
             if (!res.ok) {
                 const err = await res.json();
+                console.error("Analysis failed:", err);
                 throw new Error(err.detail || 'Simulation failed');
             }
 
@@ -207,6 +218,8 @@ export default function SimulationDashboard() {
             startPlayback(data.simulation.timeline);
 
         } catch (err) {
+            console.error("Simulation Error:", err);
+            // Show more detailed error if available
             setError(err.message);
         } finally {
             setLoading(false);
