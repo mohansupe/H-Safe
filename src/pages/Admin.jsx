@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { useUser, RedirectToSignIn } from '@clerk/clerk-react'
 import { Navigate } from 'react-router-dom'
 import { supabase } from '../lib/supabaseClient'
-import { isAdmin, SUPER_ADMIN_EMAIL } from '../lib/checkAdmin'
+import { isAdmin, SUPER_ADMIN_EMAILS } from '../lib/checkAdmin'
 import AdminManageAdmins from '../components/admin/AdminManageAdmins'
 import AdminAccessRequests from '../components/admin/AdminAccessRequests'
 import AdminFeedback from '../components/admin/AdminFeedback'
@@ -26,9 +26,9 @@ export default function Admin() {
 
       if (authorized) {
         setIsAuthorized(true)
-        setIsSuperAdmin(email === SUPER_ADMIN_EMAIL)
+        setIsSuperAdmin(SUPER_ADMIN_EMAILS.includes(email))
         fetchData()
-        if (email === SUPER_ADMIN_EMAIL) {
+        if (SUPER_ADMIN_EMAILS.includes(email)) {
           fetchAdmins()
         }
       } else {

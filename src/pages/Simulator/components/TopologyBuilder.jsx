@@ -12,6 +12,9 @@ import ReactFlow, {
     Panel
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+import { DndContext, closestCenter, PointerSensor, useSensor, useSensors } from '@dnd-kit/core';
+import { arrayMove, SortableContext, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import {
     Monitor,
     Server,
@@ -21,7 +24,9 @@ import {
     Database,
     Smartphone,
     Wifi,
-    Trash2
+    Trash2,
+    GripVertical,
+    Edit2
 } from 'lucide-react';
 
 const initialNodes = [
@@ -96,7 +101,9 @@ const nodeTypes = {
 
 // --- Sidebar Component ---
 
-const Sidebar = () => {
+const Sidebar = ({ onGenerate }) => {
+    const [genType, setGenType] = useState('simple');
+
     const onDragStart = (event, nodeType, label) => {
         event.dataTransfer.setData('application/reactflow', nodeType);
         event.dataTransfer.setData('application/reactflow-label', label);
@@ -115,8 +122,33 @@ const Sidebar = () => {
     );
 
     return (
-        <aside className="w-64 bg-slate-900 border-r border-slate-700 p-4 h-full flex flex-col">
+        <aside className="w-64 bg-slate-900 border-r border-slate-700 p-4 h-full flex flex-col overflow-y-auto">
             <h3 className="text-white font-bold mb-4 text-lg">Toolkit</h3>
+
+            {/* GENERATOR SECTION */}
+            <div className="mb-6 p-4 bg-slate-800 rounded-lg border border-slate-700">
+                <div className="text-xs font-bold text-blue-400 uppercase mb-2">Auto-Generate</div>
+                <select
+                    className="w-full bg-slate-950 text-white text-xs p-2 rounded border border-slate-700 mb-2"
+                    value={genType}
+                    onChange={(e) => setGenType(e.target.value)}
+                >
+                    <option value="simple">Simple Office</option>
+                    <option value="dmz">Secure DMZ</option>
+                    <option value="cloud">Cloud Hybrid</option>
+                    <option value="star">Star Topology</option>
+                    <option value="bus">Bus Topology</option>
+                    <option value="mesh">Mesh Topology</option>
+                    <option value="ring">Ring Topology</option>
+                </select>
+                <button
+                    onClick={() => onGenerate(genType)}
+                    className="w-full py-2 bg-blue-600 hover:bg-blue-500 text-white text-xs font-bold rounded shadow-lg transition-colors"
+                >
+                    Generate Layout
+                </button>
+            </div>
+
             <div className="space-y-2">
                 <div className="text-xs font-bold text-slate-500 uppercase mb-2 mt-4 ml-1">End Devices</div>
                 <DraggableItem type="host" label="PC / Laptop" icon={Monitor} color="text-blue-500" />
@@ -142,9 +174,107 @@ const Sidebar = () => {
 
 const API_URL = 'http://localhost:8000';
 
+// Helper to strip CIDR suffix
+const sanitizeIp = (ip) => {
+    if (!ip) return '';
+    return ip.split('/')[0];
+};
+
+const getNodeIp = (node) => {
+    if (!node) return null;
+    const cleanIp = sanitizeIp(node.data.ip);
+    if (cleanIp) return cleanIp;
+
+    // Fallback: Hash the ID to get a unique last octet (1-254)
+    // This ensures that "Internet", "cloud", etc. get distinct IPs even if they don't have numbers in IDs
+    let hash = 0;
+    const str = node.id || '';
+    for (let i = 0; i < str.length; i++) {
+        hash = str.charCodeAt(i) + ((hash << 5) - hash);
+    }
+    const uniqueOctet = (Math.abs(hash) % 254) + 1;
+    return `10.0.0.${uniqueOctet}`;
+};
+
 // --- Properties Panel ---
 
-const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
+// --- Sortable Item Component ---
+const SortableRuleItem = ({ rule, onEdit, onDelete }) => {
+    const {
+        attributes,
+        listeners,
+        setNodeRef,
+        transform,
+        transition,
+        isDragging
+    } = useSortable({ id: rule.id });
+
+    const style = {
+        transform: CSS.Transform.toString(transform),
+        transition,
+        zIndex: isDragging ? 10 : 1,
+        opacity: isDragging ? 0.5 : 1
+    };
+
+    return (
+        <div
+            ref={setNodeRef}
+            style={style}
+            className="flex items-center justify-between mb-2 last:mb-0 bg-slate-900 p-2 rounded border border-slate-800 group"
+        >
+            <div className="flex items-center gap-2 overflow-hidden">
+                {/* Drag Handle */}
+                <div {...attributes} {...listeners} className="cursor-grab text-slate-600 hover:text-slate-400">
+                    <GripVertical className="w-3 h-3" />
+                </div>
+
+                <div className="flex flex-col truncate">
+                    <span className={`text-[10px] font-bold flex gap-2 ${rule.action === 'ALLOW' ? 'text-green-500' : 'text-red-500'}`}>
+                        [{rule.action}] <span className="text-slate-300 truncate">{rule.name}</span>
+                    </span>
+                    <span className="text-[10px] text-slate-400 truncate">
+                        {rule.conditions.src_ip || '*'} &rarr; {rule.conditions.dst_ip || '*'}:{rule.conditions.dst_port || '*'}
+                    </span>
+                </div>
+            </div>
+
+            <div className="flex items-center gap-1 opacity-100 sm:opacity-0 group-hover:opacity-100 transition-opacity">
+                <button
+                    onClick={() => onEdit(rule)}
+                    className="text-slate-500 hover:text-blue-400 p-1"
+                >
+                    <Edit2 className="w-3 h-3" />
+                </button>
+                <button
+                    onClick={() => onDelete(rule.id)}
+                    className="text-slate-500 hover:text-red-400 p-1"
+                >
+                    <Trash2 className="w-3 h-3" />
+                </button>
+            </div>
+        </div>
+    );
+};
+
+const PropertiesPanel = ({ selectedNode, updateNodeData, nodes }) => {
+    // State for local rule form
+    const [ruleForm, setRuleForm] = useState({
+        name: '',
+        description: '',
+        severity: 'LOW',
+        action: 'ALERT',
+        protocol: 'TCP',
+        src_id: '',
+        dst_id: '',
+        dst_port: ''
+    });
+    const [editingId, setEditingId] = useState(null);
+
+    // DnD Sensors
+    const sensors = useSensors(
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } })
+    );
+
     if (!selectedNode) {
         return (
             <aside className="w-72 bg-slate-900 border-l border-slate-700 p-6 h-full flex flex-col justify-center items-center text-center">
@@ -161,19 +291,110 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
         updateNodeData(selectedNode.id, { [field]: value });
     };
 
-    const handleRuleToggle = (ruleId) => {
-        const currentRules = selectedNode.data.activeRules || [];
-        const newRules = currentRules.includes(ruleId)
-            ? currentRules.filter(id => id !== ruleId)
-            : [...currentRules, ruleId];
-        handleChange('activeRules', newRules);
+    const handleFormChange = (field, value) => {
+        setRuleForm(prev => ({ ...prev, [field]: value }));
     };
+
+    const resetForm = () => {
+        setRuleForm({
+            name: '',
+            description: '',
+            severity: 'LOW',
+            action: 'ALERT',
+            protocol: 'TCP',
+            src_id: '',
+            dst_id: '',
+            dst_port: ''
+        });
+        setEditingId(null);
+    };
+
+    const handleAddOrUpdateRule = () => {
+        // Find IPs from selected IDs
+        const srcNode = nodes.find(n => n.id === ruleForm.src_id);
+        const dstNode = nodes.find(n => n.id === ruleForm.dst_id);
+        const srcIp = getNodeIp(srcNode) || ruleForm.src_id;
+        const dstIp = getNodeIp(dstNode) || ruleForm.dst_id;
+
+        if (!srcIp || !dstIp) {
+            alert("Please select valid Source and Destination devices.");
+            return;
+        }
+
+        const ruleData = {
+            id: editingId || `rule_${Date.now()}`,
+            rule_id: editingId || `rule_${Date.now()}`, // Keep compatible
+            enabled: true,
+            name: ruleForm.name || `Rule ${Date.now()}`,
+            description: ruleForm.description,
+            severity: ruleForm.severity,
+            action: ruleForm.action,
+            protocol: ruleForm.protocol === 'ANY' ? null : ruleForm.protocol,
+            // Store IDs for editing
+            src_id: ruleForm.src_id,
+            dst_id: ruleForm.dst_id,
+            conditions: {
+                src_ip: srcIp === 'ANY' ? null : srcIp,
+                dst_ip: dstIp === 'ANY' ? null : dstIp,
+                dst_port: ruleForm.dst_port ? parseInt(ruleForm.dst_port) : null,
+                source_ip: srcIp === 'ANY' ? null : srcIp,
+                destination_ip: dstIp === 'ANY' ? null : dstIp
+            }
+        };
+
+        const currentRules = selectedNode.data.customRules || [];
+        let newRules;
+
+        if (editingId) {
+            newRules = currentRules.map(r => r.id === editingId ? ruleData : r);
+        } else {
+            newRules = [...currentRules, ruleData];
+        }
+
+        updateNodeData(selectedNode.id, { customRules: newRules });
+        resetForm();
+    };
+
+    const handleEditClick = (rule) => {
+        setEditingId(rule.id);
+        setRuleForm({
+            name: rule.name || '',
+            description: rule.description || '',
+            severity: rule.severity || 'LOW',
+            action: rule.action || 'ALERT',
+            protocol: rule.protocol || 'TCP',
+            // Try to restore IDs if saved, else fallback to 'ANY' if no ID found
+            src_id: rule.src_id || '',
+            dst_id: rule.dst_id || '',
+            dst_port: rule.conditions.dst_port || ''
+        });
+    };
+
+    const handleDeleteClick = (ruleId) => {
+        const currentRules = selectedNode.data.customRules || [];
+        updateNodeData(selectedNode.id, { customRules: currentRules.filter(r => r.id !== ruleId) });
+        if (editingId === ruleId) resetForm();
+    };
+
+    const handleDragEnd = (event) => {
+        const { active, over } = event;
+        if (active.id !== over.id) {
+            const currentRules = selectedNode.data.customRules || [];
+            const oldIndex = currentRules.findIndex(r => r.id === active.id);
+            const newIndex = currentRules.findIndex(r => r.id === over.id);
+            updateNodeData(selectedNode.id, { customRules: arrayMove(currentRules, oldIndex, newIndex) });
+        }
+    };
+
+    // Filter potential targets for dropdowns
+    const potentialTargets = nodes ? nodes.filter(n => ['host', 'server', 'cloud', 'router', 'switch'].includes(n.type)) : [];
+
+    const activeRules = selectedNode.data.customRules || [];
 
     return (
         <aside className="w-72 bg-slate-900 border-l border-slate-700 p-6 h-full overflow-y-auto">
             <div className="flex items-center gap-3 mb-6 pb-6 border-b border-slate-800">
                 <div className={`p-2 rounded bg-slate-800 border border-slate-700`}>
-                    {/* Icon placeholder could be dynamic based on type */}
                     <div className="font-bold text-xs uppercase text-slate-500">{selectedNode.type}</div>
                 </div>
                 <div>
@@ -186,7 +407,6 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
                 {/* Common Properties */}
                 <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase">General</label>
-
                     <div>
                         <label className="block text-slate-400 text-xs mb-1">Device Name</label>
                         <input
@@ -201,7 +421,6 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
                 {/* Network Properties */}
                 <div className="space-y-3">
                     <label className="text-xs font-bold text-slate-500 uppercase">Network Configuration</label>
-
                     <div>
                         <label className="block text-slate-400 text-xs mb-1">IP Address</label>
                         <input
@@ -212,7 +431,6 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
                             onChange={(e) => handleChange('ip', e.target.value)}
                         />
                     </div>
-
                     <div>
                         <label className="block text-slate-400 text-xs mb-1">Subnet Mask</label>
                         <input
@@ -223,7 +441,6 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
                             onChange={(e) => handleChange('subnet', e.target.value)}
                         />
                     </div>
-
                     <div>
                         <label className="block text-slate-400 text-xs mb-1">Default Gateway</label>
                         <input
@@ -239,30 +456,127 @@ const PropertiesPanel = ({ selectedNode, updateNodeData, existingRules }) => {
                 {/* Role Specific */}
                 {selectedNode.type === 'firewall' && (
                     <div className="space-y-3 pt-4 border-t border-slate-800">
-                        <label className="text-xs font-bold text-red-500 uppercase">H-Safe Policy Import</label>
+                        <label className="text-xs font-bold text-red-500 uppercase">H-Safe Rules</label>
+
+                        {/* Rule Form */}
+                        <div className={`bg-slate-950 border ${editingId ? 'border-blue-600' : 'border-slate-800'} rounded p-3 space-y-2`}>
+                            <input
+                                placeholder="Rule Name"
+                                className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[10px] text-white"
+                                value={ruleForm.name}
+                                onChange={e => handleFormChange('name', e.target.value)}
+                            />
+                            <div className="grid grid-cols-2 gap-2">
+                                <select
+                                    className="bg-slate-900 text-white text-[10px] p-1 rounded border border-slate-700"
+                                    value={ruleForm.action}
+                                    onChange={e => handleFormChange('action', e.target.value)}
+                                >
+                                    <option value="ALERT">ALERT</option>
+                                    <option value="DENY">DENY</option>
+                                    <option value="ALLOW">ALLOW</option>
+                                </select>
+                                <select
+                                    className="bg-slate-900 text-white text-[10px] p-1 rounded border border-slate-700"
+                                    value={ruleForm.severity}
+                                    onChange={e => handleFormChange('severity', e.target.value)}
+                                >
+                                    <option value="LOW">LOW</option>
+                                    <option value="MEDIUM">MEDIUM</option>
+                                    <option value="HIGH">HIGH</option>
+                                    <option value="CRITICAL">CRITICAL</option>
+                                </select>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-2">
+                                <select
+                                    className="bg-slate-900 text-white text-[10px] p-1 rounded border border-slate-700"
+                                    value={ruleForm.protocol}
+                                    onChange={e => handleFormChange('protocol', e.target.value)}
+                                >
+                                    <option value="TCP">TCP</option>
+                                    <option value="UDP">UDP</option>
+                                    <option value="ICMP">ICMP</option>
+                                    <option value="ANY">ANY</option>
+                                </select>
+                                <input
+                                    type="number"
+                                    placeholder="Dst Port"
+                                    className="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-[10px] text-white"
+                                    value={ruleForm.dst_port}
+                                    onChange={e => handleFormChange('dst_port', e.target.value)}
+                                />
+                            </div>
+
+                            {/* Source Dropdown */}
+                            <div>
+                                <label className="text-[10px] text-slate-500 block mb-1">Source</label>
+                                <select
+                                    className="w-full bg-slate-900 text-white text-[10px] p-1 rounded border border-slate-700"
+                                    value={ruleForm.src_id}
+                                    onChange={e => handleFormChange('src_id', e.target.value)}
+                                >
+                                    <option value="">Select Source...</option>
+                                    <option value="ANY">Any IP (*)</option>
+                                    {potentialTargets.map(n => (
+                                        <option key={n.id} value={n.id}>{n.data.label} ({getNodeIp(n) || 'No IP'})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            {/* Destination Dropdown */}
+                            <div>
+                                <label className="text-[10px] text-slate-500 block mb-1">Destination</label>
+                                <select
+                                    className="w-full bg-slate-900 text-white text-[10px] p-1 rounded border border-slate-700"
+                                    value={ruleForm.dst_id}
+                                    onChange={e => handleFormChange('dst_id', e.target.value)}
+                                >
+                                    <option value="">Select Dest...</option>
+                                    <option value="ANY">Any IP (*)</option>
+                                    {potentialTargets.map(n => (
+                                        <option key={n.id} value={n.id}>{n.data.label} ({getNodeIp(n) || 'No IP'})</option>
+                                    ))}
+                                </select>
+                            </div>
+
+                            <div className="flex gap-2 mt-2">
+                                <button
+                                    onClick={handleAddOrUpdateRule}
+                                    className={`flex-1 py-1 text-white text-[10px] font-bold rounded ${editingId ? 'bg-indigo-600 hover:bg-indigo-500' : 'bg-blue-600 hover:bg-blue-500'}`}
+                                >
+                                    {editingId ? 'Update Rule' : 'Add Rule'}
+                                </button>
+                                {editingId && (
+                                    <button
+                                        onClick={resetForm}
+                                        className="py-1 px-2 bg-slate-800 hover:bg-slate-700 text-slate-300 text-[10px] rounded"
+                                    >
+                                        Cancel
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Rules List (Draggable) */}
                         <div className="bg-slate-950 border border-slate-800 rounded p-2 max-h-40 overflow-y-auto">
-                            {existingRules.length === 0 ? (
-                                <div className="text-xs text-slate-500 text-center py-2">No rules found. Add them in Rule Management.</div>
+                            {activeRules.length === 0 ? (
+                                <div className="text-xs text-slate-500 text-center py-2">No manual rules added.</div>
                             ) : (
-                                existingRules.map(rule => (
-                                    <div key={rule.id} className="flex items-center mb-2 last:mb-0">
-                                        <input
-                                            type="checkbox"
-                                            id={`rule-${rule.id}`}
-                                            className="mr-2"
-                                            checked={(selectedNode.data.activeRules || []).includes(rule.id)}
-                                            onChange={() => handleRuleToggle(rule.id)}
-                                        />
-                                        <label htmlFor={`rule-${rule.id}`} className="text-xs text-slate-300 cursor-pointer truncate">
-                                            <span className={`font-bold ${rule.action === 'Allow' ? 'text-green-500' : 'text-red-500'}`}>[{rule.action}]</span> {rule.source_ip} &rarr; {rule.destination_ip}
-                                        </label>
-                                    </div>
-                                ))
+                                <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+                                    <SortableContext items={activeRules.map(r => r.id)} strategy={verticalListSortingStrategy}>
+                                        {activeRules.map((rule) => (
+                                            <SortableRuleItem
+                                                key={rule.id}
+                                                rule={rule}
+                                                onEdit={handleEditClick}
+                                                onDelete={handleDeleteClick}
+                                            />
+                                        ))}
+                                    </SortableContext>
+                                </DndContext>
                             )}
                         </div>
-                        <p className="text-[10px] text-slate-500">
-                            Select rules to apply to this H-Safe instance.
-                        </p>
                     </div>
                 )}
             </div>
@@ -361,7 +675,7 @@ const SimulationPanel = ({ nodes, onRunSimulation, simulationResult, isSimulatin
                     <div className="flex justify-between items-center mb-2">
                         <span className="text-xs font-bold text-slate-400">Simulation Trace</span>
                         <span className={`text-[10px] uppercase font-bold px-2 py-0.5 rounded ${simulationResult.outcome === 'BLOCKED' ? 'bg-red-500/20 text-red-500' :
-                                simulationResult.outcome === 'ARRIVED' ? 'bg-green-500/20 text-green-500' : 'text-slate-500'
+                            simulationResult.outcome === 'ARRIVED' ? 'bg-green-500/20 text-green-500' : 'text-slate-500'
                             }`}>
                             {simulationResult.outcome}
                         </span>
@@ -378,8 +692,8 @@ const SimulationPanel = ({ nodes, onRunSimulation, simulationResult, isSimulatin
                         {/* Hop List */}
                         {simulationResult.trace && simulationResult.trace.map((step, idx) => (
                             <div key={idx} className={`text-[10px] p-2 rounded border border-l-2 flex flex-col gap-1 ${step.action === 'DROP' ? 'bg-red-950/30 border-slate-800 border-l-red-500' :
-                                    step.action === 'FORWARD' && step.detections.length > 0 ? 'bg-yellow-950/30 border-slate-800 border-l-yellow-500' :
-                                        'bg-slate-800 border-slate-700 border-l-blue-500'
+                                step.action === 'FORWARD' && step.detections.length > 0 ? 'bg-yellow-950/30 border-slate-800 border-l-yellow-500' :
+                                    'bg-slate-800 border-slate-700 border-l-blue-500'
                                 }`}>
                                 <div className="flex justify-between font-bold">
                                     <span className="text-slate-300">Hop {step.hop}: {step.node_id}</span>
@@ -415,7 +729,7 @@ function TopologyBuilderContent() {
 
     const [reactFlowInstance, setReactFlowInstance] = useState(null);
     const [selectedNodeId, setSelectedNodeId] = useState(null);
-    const [existingRules, setExistingRules] = useState([]);
+
     const [simulationResult, setSimulationResult] = useState(null);
     const [isSimulating, setIsSimulating] = useState(false);
 
@@ -439,20 +753,7 @@ function TopologyBuilderContent() {
         localStorage.setItem(KEY_EDGES, JSON.stringify(edges));
     }, [edges]);
 
-    React.useEffect(() => {
-        const fetchRules = async () => {
-            try {
-                const response = await fetch(`${API_URL}/rules?t=${Date.now()}`);
-                const data = await response.json();
-                if (Array.isArray(data)) {
-                    setExistingRules(data);
-                }
-            } catch (error) {
-                console.error("Failed to fetch rules:", error);
-            }
-        };
-        fetchRules();
-    }, []);
+    // Rule fetching removed for standalone manual rule entry
 
     const onConnect = useCallback(
         (params) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#fff', strokeWidth: 2 } }, eds)),
@@ -580,7 +881,7 @@ function TopologyBuilderContent() {
                 // If IP is missing, auto-assign one for simulation to work?
                 // Let's use the ID as the reference name in the graph.
                 topologyNodes[n.id] = {
-                    ip: n.data.ip || `10.0.0.${n.id.replace(/\D/g, '') || 1}`, // Fallback IP
+                    ip: getNodeIp(n),
                     type: n.type
                 };
 
@@ -628,6 +929,16 @@ function TopologyBuilderContent() {
             if (hSafeNode && attacker === hSafeNode.id) attacker = 'firewall';
             if (hSafeNode && target === hSafeNode.id) target = 'firewall';
 
+            // 5. Gather Selected Rules
+            // Use customRules from H-Safe node data
+            let selectedRules = [];
+            if (hSafeNode && hSafeNode.data.customRules && hSafeNode.data.customRules.length > 0) {
+                selectedRules = hSafeNode.data.customRules;
+            } else {
+                selectedRules = [];
+            }
+            // However, if NO firewall node, rules are irrelevant.
+
             const payload = {
                 topology: {
                     nodes: topologyNodes,
@@ -636,7 +947,8 @@ function TopologyBuilderContent() {
                 attacker_node: attacker,
                 target_node: target,
                 protocol: config.protocol,
-                dst_port: config.port
+                dst_port: config.port,
+                rules: selectedRules // Pass selected rules
             };
 
             const response = await fetch(`${API_URL}/simulate/topology`, {
@@ -670,9 +982,59 @@ function TopologyBuilderContent() {
         }
     };
 
+    const handleGenerate = async (type) => {
+        if (!window.confirm("Generating a new topology will clear the current canvas. Continue?")) return;
+
+        try {
+            const res = await fetch(`${API_URL}/simulate/topology/generate`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ prompt: type, params: {} })
+            });
+
+            if (!res.ok) throw new Error("Failed to generate topology");
+
+            const data = await res.json();
+
+            // Map Nodes
+            const newNodes = data.nodes.map(n => ({
+                id: n.id,
+                type: n.type === 'internet' ? 'cloud' : n.type, // Map backend type 'internet' to frontend 'cloud'
+                position: n.position,
+                data: {
+                    label: n.name,
+                    ip: n.metadata.ip,
+                    subnet: n.metadata.subnet,
+                    gateway: '', // not in metadata default?
+                    activeRules: []
+                }
+            }));
+
+            // Map Edges
+            const newEdges = data.links.map(l => ({
+                id: l.id,
+                source: l.source_node_id,
+                target: l.destination_node_id,
+                animated: true,
+                style: { stroke: '#fff', strokeWidth: 2 },
+                type: 'default'
+            }));
+
+            setNodes(newNodes);
+            setEdges(newEdges);
+
+            // Reset simulation if any
+            setSimulationResult(null);
+
+        } catch (err) {
+            console.error(err);
+            alert("Error generating topology: " + err.message);
+        }
+    };
+
     return (
         <div className="flex h-[800px] border border-slate-700 rounded-xl overflow-hidden bg-slate-950 relative">
-            <Sidebar />
+            <Sidebar onGenerate={handleGenerate} />
             <div className="flex-grow h-full relative" ref={reactFlowWrapper}>
                 <div className="absolute top-4 right-4 z-10">
                     <button
@@ -713,7 +1075,7 @@ function TopologyBuilderContent() {
                     />
                 </ReactFlow>
             </div>
-            <PropertiesPanel selectedNode={selectedNode} updateNodeData={updateNodeData} existingRules={existingRules} />
+            <PropertiesPanel selectedNode={selectedNode} updateNodeData={updateNodeData} nodes={nodes} />
         </div>
     );
 }

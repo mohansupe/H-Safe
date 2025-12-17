@@ -9,15 +9,23 @@ import RevealOnScroll from "../components/RevealOnScroll";
 export default function Home() {
   // optionally pass data prop to change percent and lists
   const progressData = {
-    percent: 29,
-    completed: ["Rules Addition", "Rules Implementation"],
-    inProgress: ["PCAP File Analysis", "Network Topology Simulation", "Post Attack Analysis"],
+    percent: 75,
+    completed: [
+      "Stateful Rule Engine",
+      "Interactive Topology Builder",
+      "Drag-and-Drop Rule Manager",
+      "Secure Access Control",
+      "PCAP Analysis Module"
+    ],
+    inProgress: [
+      "Real-time Packet Visualization",
+      "Automated Threat Reporting",
+      "Advanced Traffic Forensics"
+    ],
     planned: [
-      "Rules Addition",
-      "Rules Implementation",
-      "PCAP File Analysis",
-      "Network Topology Simulation",
-      "Post Attack Analysis"
+      "AI-Driven Anomaly Detection",
+      "Cloud Environment Integration",
+      "Multi-User Team Collaboration"
     ]
   };
 

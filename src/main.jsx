@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 import { ClerkProvider } from "@clerk/clerk-react";
 import { BrowserRouter } from "react-router-dom";
 
-import App from "./pages/App";
+import App from "./App";
 import "./styles.css";
 
 // Load Clerk Publishable Key from Vite env

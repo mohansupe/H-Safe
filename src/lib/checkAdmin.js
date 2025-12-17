@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient'
 
-export const SUPER_ADMIN_EMAIL = 'mohansupe2004@gmail.com'
+export const SUPER_ADMIN_EMAILS = ['mohansupe2004@gmail.com', 'varadkhopkar@gmail.com']
 
 /**
  * Checks if a user is an admin.
@@ -11,7 +11,7 @@ export async function isAdmin(email) {
     if (!email) return false
 
     // Check if super admin
-    if (email === SUPER_ADMIN_EMAIL) return true
+    if (SUPER_ADMIN_EMAILS.includes(email)) return true
 
     try {
         // Check if in admin_users table

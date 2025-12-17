@@ -1,150 +1,228 @@
-import React from 'react'
+
+import React, { useState } from 'react'
 import Header from '../components/Header'
 import Footer from '../components/Footer'
 import RevealOnScroll from '../components/RevealOnScroll'
+import { ChevronRight, Shield, Activity, Globe, FileText, BarChart2, Layout, X } from 'lucide-react'
 
 const features = [
     {
         title: "Rule Addition Module",
-        description: "Create and customize detection rules to monitor traffic and identify suspicious behavior.",
-        details: [
-            "Supports modular rule construction and validation to ensure accuracy."
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-            </svg>
-        )
+        brief: "Create and customize detection rules to monitor traffic and identify suspicious behavior.",
+        extended: {
+            description: "The Rule Addition Module is the first line of defense in H-Safe. It allows administrators to define granular security policies that govern network traffic.",
+            capabilities: [
+                "**Stateful Inspection**: Define rules based on 5-tuple parameters (Source IP, Dest IP, Source Port, Dest Port, Protocol).",
+                "**Priority Handling**: Assign severity levels (Low, Medium, High, Critical) to prioritize threat responses.",
+                "**Action Definitions**: precise actions including ALLOW, DROP, ALERT, and LOG.",
+                "**Validation Engine**: Real-time syntax checking to prevent conflicting or invalid rules."
+            ],
+            technical: "Implemented via `RuleImplementation` class which effectively serializes policies into a high-performance matching engine."
+        },
+        icon: <Shield className="w-8 h-8" />
     },
     {
         title: "Rule Implementation Engine",
-        description: "Deploy rules instantly within the system to evaluate real-time performance.",
-        details: [
-            "Monitor false positives, rule effectiveness, and coverage."
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
-            </svg>
-        )
+        brief: "Deploy rules instantly within the system to evaluate real-time performance.",
+        extended: {
+            description: "Once rules are defined, the Implementation Engine enforces them across the simulated network nodes. It acts as the kernel of the firewall system.",
+            capabilities: [
+                "**Real-time Enforcement**: Rules are applied immediately without requiring system restarts.",
+                "**Conflict Resolution**: Automatically identifies and resolves shadowing or redundant rules.",
+                "**Performance Monitoring**: Tracks the CPU and memory impact of active rule sets.",
+                "**Order Optimization**: Reorders rules dynamically to optimize packet processing speed."
+            ],
+            technical: "Uses optimized lookup tables to reduce complexity from O(N) to O(1) for common traffic patterns."
+        },
+        icon: <Layout className="w-8 h-8" />
     },
     {
         title: "PCAP File Analyzer",
-        description: "Upload PCAP files and inspect packets at granular levels with visual dashboards.",
-        details: [
-            "Identify Malware traffic & Anomalies",
-            "Detect Intrusion attempts & Protocol exploits",
-            "Visual and detailed dashboards help simplify analysis"
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-            </svg>
-        )
+        brief: "Upload PCAP files and inspect packets at granular levels with visual dashboards.",
+        extended: {
+            description: "The PCAP Analyzer turns raw packet data into actionable intelligence. It dissects uploaded capture files to reconstruct network conversations.",
+            capabilities: [
+                "**Protocol Dissection**: Native support for TCP, UDP, ICMP, HTTP, and DNS protocols.",
+                "**Payload Inspection**: Deep dive into packet payloads to find hidden malware signatures or data exfiltration attempts.",
+                "**Flow Reconstruction**: Visualizes the complete conversation between a client and server.",
+                "**Anomaly Detection**: Heuristic analysis to flag non-compliant protocol headers."
+            ],
+            technical: "Powered by **Scapy**, capable of parsing gigabytes of traffic data efficiently."
+        },
+        icon: <FileText className="w-8 h-8" />
     },
     {
         title: "Network Topology Simulator",
-        description: "Simulate nodes, devices, routers, and attack paths to identify weak points.",
-        details: [
-            "Test how attackers might move through a network",
-            "Visualize network architecture"
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-            </svg>
-        )
+        brief: "Simulate nodes, devices, routers, and attack paths to identify weak points.",
+        extended: {
+            description: "Design and test complex network architectures in a safe, virtualized environment. The Simulator allows you to model your actual infrastructure.",
+            capabilities: [
+                "**Drag-and-Drop Builder**: Intuitive UI to place Hosts, Servers, Routers, and Firewalls.",
+                "**Attack Path Simulation**: Visualize how an attacker could move laterally through the network.",
+                "**Bottleneck Identification**: Stress-test links to find bandwidth limitations.",
+                "**Configuration Testing**: Validate subnet masks, routing tables, and gateway configurations."
+            ],
+            technical: "Built on **React Flow** for the frontend and a **Python NetworkX** backend for graph-based pathfinding."
+        },
+        icon: <Globe className="w-8 h-8" />
     },
     {
-        title: "Post-Attack Analysis Dashboard",
-        description: "Comprehensive insights after simulating or detecting an attack.",
-        details: [
-            "View Attack flow & Vulnerabilities exploited",
-            "Impact mapping & Mitigation recommendations"
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-            </svg>
-        )
+        title: "Post-Attack Analysis",
+        brief: "Comprehensive insights after simulating or detecting an attack.",
+        extended: {
+            description: "After a simulation run, the Post-Attack Analysis dashboard provides a forensic breakdown of what happened.",
+            capabilities: [
+                "**Kill Chain Visualization**: See the exact steps the attacker took to breach the system.",
+                "**Impact Assessment**: Quantifies data loss and system downtime.",
+                "**Root Cause Analysis**: Pinpoints the specific misconfiguration or vulnerability exploited.",
+                "**Remediation Suggestions**: AI-driven recommendations to patch the identified holes."
+            ],
+            technical: "Aggregates log data into structured JSON reports and generates PDF summaries."
+        },
+        icon: <Activity className="w-8 h-8" />
     },
     {
         title: "Metrics, Logs & Reporting",
-        description: "Track system behavior and rule triggers with detailed audit logs.",
-        details: [
-            "Track event timelines and rule triggers",
-            "Export-ready reports for academic or professional use"
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
-        )
-    },
-    {
-        title: "Modern, Intuitive Interface",
-        description: "Designed with a clean UI for students and cybersecurity teams alike.",
-        details: [
-            "No steep learning curve",
-            "Clear and easy to navigate structure"
-        ],
-        icon: (
-            <svg xmlns="http://www.w3.org/2000/svg" className="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 3v4M3 5h4M6 17v4m-2-2h4m5-16l2.286 6.857L21 12l-5.714 2.143L13 21l-2.286-6.857L5 12l5.714-2.143L13 3z" />
-            </svg>
-        )
+        brief: "Track system behavior and rule triggers with detailed audit logs.",
+        extended: {
+            description: "Visibility is key to security. H-Safe creates an immutable audit trail of every decision made by the firewall.",
+            capabilities: [
+                "**Audit Trails**: Who changed what rule, and when?",
+                "**Compliance Reporting**: Generate reports for compliance standards like ISO 27001 or SOC2.",
+                "**Traffic Heatmaps**: Visualize high-volume interaction points.",
+                "**Event Correlation**: Link seemingly unrelated events to identify coordinated attacks."
+            ],
+            technical: "High-throughput logging system capable of handling thousands of events per second."
+        },
+        icon: <BarChart2 className="w-8 h-8" />
     }
 ]
 
-export default function FeaturesPage() {
+const FeatureModal = ({ feature, onClose }) => {
+    if (!feature) return null;
     return (
-        <div className="bg-gradient-to-b from-slate-900 via-slate-900 to-slate-950 min-h-screen text-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+            <div className="bg-slate-900 border border-slate-700 rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto relative shadow-2xl animate-scale-in" onClick={e => e.stopPropagation()}>
+                <button
+                    onClick={onClose}
+                    className="absolute top-4 right-4 p-2 bg-slate-800 rounded-full text-slate-400 hover:text-white hover:bg-slate-700 transition-colors z-10"
+                >
+                    <X className="w-6 h-6" />
+                </button>
 
-            <section className="py-20">
-                <div className="container mx-auto px-6">
-                    <div className="text-center mb-20">
-                        <h1 className="text-4xl md:text-6xl font-bold text-white mb-6">Platform Features</h1>
-                        <p className="text-xl text-slate-400 max-w-2xl mx-auto">
-                            Discover the powerful tools that make H-Safe the ultimate cybersecurity simulation platform.
-                        </p>
+                <div className="p-8 md:p-10">
+                    <div className="flex items-center gap-6 mb-8 border-b border-slate-800 pb-8">
+                        <div className="p-4 bg-blue-600/20 rounded-2xl text-blue-400">
+                            {feature.icon}
+                        </div>
+                        <div>
+                            <h2 className="text-3xl font-bold text-white mb-2">{feature.title}</h2>
+                            <p className="text-slate-400 text-lg">{feature.brief}</p>
+                        </div>
                     </div>
 
-                    <RevealOnScroll>
-                        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-                            {features.map((feature, index) => (
-                                <div
-                                    key={index}
-                                    className={`bg-slate-800/50 rounded-2xl p-8 border border-slate-700 hover:border-blue-500/50 hover:bg-slate-800 transition-all duration-300 group ${index === features.length - 1 ? 'lg:col-start-2' : ''}`}
-                                >
-                                    <div className="w-16 h-16 bg-blue-600/10 rounded-2xl flex items-center justify-center mb-6 text-blue-400 group-hover:scale-110 transition-transform duration-300">
-                                        {feature.icon}
-                                    </div>
+                    <div className="grid md:grid-cols-2 gap-12">
+                        <div>
+                            <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-blue-500"></div>
+                                Overview
+                            </h4>
+                            <p className="text-slate-300 leading-relaxed mb-8">
+                                {feature.extended.description}
+                            </p>
 
-                                    <h3 className="text-2xl font-bold text-white mb-4 group-hover:text-blue-400 transition-colors">
-                                        {feature.title}
-                                    </h3>
-
-                                    <p className="text-slate-400 mb-6 leading-relaxed">
-                                        {feature.description}
-                                    </p>
-
-                                    <ul className="space-y-3">
-                                        {feature.details.map((detail, idx) => (
-                                            <li key={idx} className="flex items-start text-sm text-slate-400">
-                                                <svg xmlns="http://www.w3.org/2000/svg" className="w-5 h-5 text-blue-500 mr-2 flex-shrink-0" viewBox="0 0 20 20" fill="currentColor">
-                                                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
-                                                </svg>
-                                                {detail}
-                                            </li>
-                                        ))}
-                                    </ul>
-                                </div>
-                            ))}
+                            <div className="bg-slate-950/50 rounded-lg p-5 border border-slate-800/50">
+                                <div className="text-sm font-mono text-blue-300/80 mb-3 block border-b border-slate-800/50 pb-2 w-full">// Technical Implementation</div>
+                                <p className="text-sm text-slate-500 font-mono leading-relaxed">
+                                    {feature.extended.technical}
+                                </p>
+                            </div>
                         </div>
-                    </RevealOnScroll>
-                </div>
-            </section>
 
+                        <div>
+                            <h4 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500"></div>
+                                Key Capabilities
+                            </h4>
+                            <ul className="space-y-4">
+                                {feature.extended.capabilities.map((cap, i) => (
+                                    <li key={i} className="flex items-start gap-4 p-3 rounded-lg bg-slate-800/30 hover:bg-slate-800/50 transition-colors">
+                                        <div className="mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0"></div>
+                                        <span className="text-slate-300 text-sm leading-relaxed"
+                                            dangerouslySetInnerHTML={{
+                                                __html: cap.replace(/\*\*(.*?)\*\*/g, '<span class="text-white font-medium">$1</span>')
+                                            }}
+                                        />
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     )
 }
+
+export default function FeaturesPage() {
+    const [selectedFeature, setSelectedFeature] = useState(null);
+
+    return (
+        <div className="min-h-screen bg-slate-950 text-slate-200">
+            {/* Header Section */}
+            <section className="py-20 relative overflow-hidden">
+                <div className="absolute inset-0 bg-blue-600/5 blur-[120px] rounded-full transform -translate-y-1/2"></div>
+                <div className="container mx-auto px-6 relative z-10">
+                    <div className="text-center max-w-3xl mx-auto">
+                        <h1 className="text-5xl md:text-7xl font-bold text-white mb-8 tracking-tight">
+                            Platform <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-indigo-500">Features</span>
+                        </h1>
+                        <p className="text-xl text-slate-400 leading-relaxed">
+                            Explore the comprehensive toolkit that makes H-Safe the premier platform for network security emulation and policy validation.
+                        </p>
+                    </div>
+                </div>
+            </section>
+
+            {/* Features Grid */}
+            <section className="pb-24">
+                <div className="container mx-auto px-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+                        {features.map((feature, index) => (
+                            <div
+                                key={index}
+                                onClick={() => setSelectedFeature(feature)}
+                                className="group relative bg-slate-900/50 border border-slate-800 rounded-2xl p-8 hover:bg-slate-900 hover:border-blue-500/50 transition-all duration-300 cursor-pointer shadow-lg hover:shadow-blue-900/10 overflow-hidden"
+                            >
+                                <div className="absolute top-0 right-0 p-6 opacity-0 group-hover:opacity-100 transition-opacity transform translate-x-2 group-hover:translate-x-0">
+                                    <ChevronRight className="w-5 h-5 text-blue-500" />
+                                </div>
+
+                                <div className="w-14 h-14 bg-slate-800 rounded-xl flex items-center justify-center mb-6 text-slate-400 group-hover:text-blue-400 group-hover:bg-blue-600/10 transition-colors duration-300">
+                                    {feature.icon}
+                                </div>
+
+                                <h3 className="text-xl font-bold text-white mb-3 group-hover:text-blue-400 transition-colors">
+                                    {feature.title}
+                                </h3>
+                                <p className="text-slate-400 text-sm leading-relaxed mb-4">
+                                    {feature.brief}
+                                </p>
+                                <div className="text-blue-500 text-sm font-medium flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-all duration-300 transform translate-y-2 group-hover:translate-y-0">
+                                    Read more <ChevronRight className="w-4 h-4 ml-1" />
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </section>
+
+            {/* Modal */}
+            <FeatureModal
+                feature={selectedFeature}
+                onClose={() => setSelectedFeature(null)}
+            />
+        </div>
+    )
+}
+

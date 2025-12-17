@@ -56,6 +56,13 @@ class TopologySimRequest(BaseModel):
     protocol: str = "TCP"
     dst_port: int = 80
     packet_count: int = 5
+    rules: Optional[List[Dict]] = []
+
+# ... (omitted lines) ...
+
+class TopologyGenRequest(BaseModel):
+    prompt: str
+    params: Optional[Dict] = {}
 
 class ExportRequest(BaseModel):
     report: dict
@@ -74,6 +81,20 @@ class ExportRequest(BaseModel):
 @app.get("/")
 def read_root():
     return {"message": "H-Safe Simulator API is running"}
+
+@app.post("/simulate/topology/generate")
+def generate_topology_endpoint(req: TopologyGenRequest):
+    """
+    Generate a network topology based on a text prompt/type.
+    """
+    try:
+        import topology_builder
+        topology = topology_builder.generate_topology_data(req.prompt)
+        return topology
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=str(e))
 
 # --- RULES MANAGEMENT (Legacy/Optional - now Client Side usually) ---
 
@@ -234,9 +255,11 @@ def run_topology_simulation(req: TopologySimRequest):
 
         import topology_simulation
 
-        # Get rules (either from storage or potentially passed in request in future)
-        # For now, fetching global rules as before
-        rules = rule_addition.get_all_rules(include_disabled=False)
+        # Get rules: Use request rules if provided (Topology H-Safe Rules), else global rules
+        if req.rules:
+             rules = req.rules
+        else:
+             rules = rule_addition.get_all_rules(include_disabled=False)
 
         result = topology_simulation.simulate_attack(
             topology=topology_data,

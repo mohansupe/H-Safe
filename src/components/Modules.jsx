@@ -5,29 +5,29 @@ import RevealOnScroll from './RevealOnScroll'
 
 const modules = [
     {
-        title: "Rule Addition",
-        shortDesc: "Create and manage custom detection rules tailored to your security needs.",
-        fullDesc: "Create and manage custom detection rules tailored to your security needs. Define specific criteria to flag or block traffic, ensuring your network is protected against known and emerging threats."
+        title: "Rule Engine & Policy Management",
+        shortDesc: "stateful firewall logic using 5-tuple matching and priority handling.",
+        fullDesc: "Powered by 'rule_implementation.py' and 'rule_addition.py', this module provides stateful packet inspection, priority-based rule evaluation, and support for complex filtering conditions (IP, Port, Protocol, Severity)."
     },
     {
-        title: "Rule Implementation",
-        shortDesc: "Deploy, test, and validate rules in real-time against network activity.",
-        fullDesc: "Deploy, test, and validate rules in real-time against network activity. Ensure that your security policies are effective without disrupting legitimate traffic flow."
+        title: "Graph-Based Topology Simulation",
+        shortDesc: "Simulate attack paths across complex network graphs with hop-by-hop traversal.",
+        fullDesc: "Utilizing 'topology_simulation.py', this core module models network devices as nodes in a directed graph. It calculates shortest paths, mimics forwarding logic, and applies firewall rules at specific hops to block or allow traffic dynamically."
     },
     {
-        title: "PCAP File Analysis",
-        shortDesc: "Dive deep into packet captures to identify anomalies, attacks, and suspicious traffic patterns.",
-        fullDesc: "Dive deep into packet captures to identify anomalies, attacks, and suspicious traffic patterns. Upload PCAP files to visualize traffic, inspect payloads, and uncover hidden threats."
+        title: "PCAP Forensics & Analysis",
+        shortDesc: "Deep packet inspection and threat signature matching using Scapy.",
+        fullDesc: "The 'pcap_analysis.py' module dissects packet captures to identify protocol anomalies, flag suspicious payloads, and visualize traffic patterns. It supports varied protocols (TCP, UDP, ICMP) and generates detailed forensic reports."
     },
     {
-        title: "Network Topology Simulation",
-        shortDesc: "Visualize network architecture and simulate attack paths and traffic flow.",
-        fullDesc: "Visualize network architecture and simulate attack paths and traffic flow. Design virtual networks to understand vulnerabilities and test defense strategies in a safe environment."
+        title: "Post-Attack Analytics",
+        shortDesc: "Generate comprehensive incident reports and effective security insights.",
+        fullDesc: "Driven by 'post_attack_analysis.py' and 'report_generator.py', this module aggregates simulation data to produce actionable intelligence. It generates PDF/JSON reports summarizing blocked threats, rule effectiveness, and network vulnerabilities."
     },
     {
-        title: "Post-Attack Analysis",
-        shortDesc: "Understand attacker behavior, uncover vulnerabilities, and improve your defenses.",
-        fullDesc: "Understand attacker behavior, uncover vulnerabilities, and improve your defenses. Analyze incident data to generate reports and actionable insights for future prevention."
+        title: "Visual Topology Builder",
+        shortDesc: "Interactive React Flow interface for designing validation environments.",
+        fullDesc: "A responsive frontend interface enabling users to drag-and-drop hosts, servers, and firewalls. It seamlessly synchronizes the visual graph with the backend simulation engine for real-time validation of security policies."
     }
 ]
 

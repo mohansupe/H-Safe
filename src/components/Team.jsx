@@ -4,8 +4,8 @@ import RevealOnScroll from './RevealOnScroll'
 const members = [
   {
     name: 'Mohan Ashok Supe',
-    role: 'Front-end Developer',
-    bio: 'Developing the frontend of the project.',
+    role: 'Integration Developer',
+    bio: 'Responsible for Clerk authentication, Node backend architecture, and service deployment strategies.',
     img: '/assets/mohan.jpg',
     details: {
       fullName: 'MOHAN ASHOK SUPE',
@@ -13,14 +13,13 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/mohansupe',
       Linkedin: 'https://www.linkedin.com/in/mohansupe/',
-
       email: 'mohan.supe@adypu.edu.in'
     }
   },
   {
     name: 'Hrishikesh Badgujar',
-    role: 'Front-end Developer',
-    bio: 'Developing the frontend of the project.',
+    role: 'UI Developer',
+    bio: 'Focusing on React interface design, Node gateway implementation, and Supabase integration.',
     img: '/assets/hrishi.jpg',
     details: {
       fullName: 'Hrishikesh Badgujar',
@@ -28,14 +27,13 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/hrishikesh2810',
       Linkedin: 'https://www.linkedin.com/in/hrishikesh-badgujar/',
-
       email: 'Hrishikesh.badgujar@adypu.edu.in'
     }
   },
   {
     name: 'Varad Khopkar',
-    role: 'Backend Developer',
-    bio: 'Implementing & developing logic.',
+    role: 'Logic & Security Lead',
+    bio: 'Architecting Python firewall modules, security protocols, API specs, and vulnerability testing.',
     img: '/assets/varad.jpg',
     details: {
       fullName: 'Varad Khopkar',
@@ -43,14 +41,13 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/Varad-Khopkar',
       Linkedin: 'https://www.linkedin.com/in/varad-khopkar/',
-
       email: 'varad.khopkar@adypu.edu.in'
     }
   },
   {
     name: 'Khushi Gupta',
-    role: 'Research',
-    bio: 'Documenting & Research.',
+    role: 'Documentation Lead',
+    bio: 'Creating technical documentation, system diagrams, project reports, and presentation materials.',
     img: '/assets/khushi.jpg',
     details: {
       fullName: 'Khushi Gupta',
@@ -58,7 +55,6 @@ const members = [
       institute: 'Ajeenkya DY Patil University',
       Github: 'https://github.com/khushiiGupta016',
       Linkedin: 'https://www.linkedin.com/in/khushi-gupta-270022249/',
-
       email: 'khushi.gupta@adypu.edu.in'
     }
   },

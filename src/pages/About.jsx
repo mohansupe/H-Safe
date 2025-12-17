@@ -29,17 +29,6 @@ export default function About() {
                 <div className="container mx-auto px-6">
                     <RevealOnScroll>
                         <div className="grid md:grid-cols-2 gap-12 max-w-6xl mx-auto">
-                            {/* Vision */}
-                            <div className="bg-slate-800/50 p-10 rounded-2xl border border-slate-700 hover:border-blue-500/30 transition-all duration-300">
-                                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-6 text-blue-400">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
-                                </div>
-                                <h2 className="text-3xl font-bold text-white mb-4">Our Vision</h2>
-                                <p className="text-slate-400 leading-relaxed">
-                                    To create a next-generation cybersecurity platform that empowers users to proactively defend digital infrastructure using intelligent, data-driven, and interactive technologies.
-                                </p>
-                            </div>
-
                             {/* Mission */}
                             <div className="bg-slate-800/50 p-10 rounded-2xl border border-slate-700 hover:border-purple-500/30 transition-all duration-300">
                                 <div className="w-12 h-12 bg-purple-500/20 rounded-xl flex items-center justify-center mb-6 text-purple-400">
@@ -47,8 +36,30 @@ export default function About() {
                                 </div>
                                 <h2 className="text-3xl font-bold text-white mb-4">Our Mission</h2>
                                 <p className="text-slate-400 leading-relaxed">
-                                    To deliver an accessible, high-precision cybersecurity ecosystem that enhances threat detection, simplifies complex analysis, and supports informed security decision-making.
+                                    Building a sophisticated firewall simulator that combines robust backend security with an intuitive user interface. This project demonstrates real-world application of network security principles through practical implementation.
                                 </p>
+                            </div>
+
+                            {/* Core Objectives */}
+                            <div className="bg-slate-800/50 p-10 rounded-2xl border border-slate-700 hover:border-blue-500/30 transition-all duration-300">
+                                <div className="w-12 h-12 bg-blue-500/20 rounded-xl flex items-center justify-center mb-6 text-blue-400">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z" /><circle cx="12" cy="12" r="3" /></svg>
+                                </div>
+                                <h2 className="text-3xl font-bold text-white mb-4">Core Objectives</h2>
+                                <ul className="space-y-3 text-slate-400 leading-relaxed">
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-1.5">•</span> Develop comprehensive firewall engine modules
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-1.5">•</span> Create seamless user experience
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-1.5">•</span> Implement enterprise-grade security
+                                    </li>
+                                    <li className="flex items-start gap-2">
+                                        <span className="text-blue-500 mt-1.5">•</span> Ensure clear documentation
+                                    </li>
+                                </ul>
                             </div>
                         </div>
                     </RevealOnScroll>
